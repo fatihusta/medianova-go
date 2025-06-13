@@ -58,35 +58,6 @@ func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) (*PurgeRes
 	return utils.FromJSONToStruct[*PurgeResponse](resp)
 }
 
-type PurgeStatusRequest struct {
-	OrganizationUUID string
-	ResourceUUID     string
-	OpID             string
-}
-
-type PurgeStatusResponse struct {
-	Status  bool                       `json:"status"`
-	Payload PurgeStatusResponsePayload `json:"data"`
-}
-
-type PurgeStatusResponsePayload struct {
-	Page     int                           `json:"page"`
-	Total    int                           `json:"total"`
-	Limit    int                           `json:"limit"`
-	Search   string                        `json:"search"`
-	Requests []PurgeStatusResponseRequests `json:"requests"`
-}
-
-type PurgeStatusResponseRequests struct {
-	CompletedAt time.Time `json:"completedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
-	StartedAt   time.Time `json:"startedAt"`
-	Message     string    `json:"message"`
-	OpID        string    `json:"opID"`
-	Status      int       `json:"status"`
-	URL         string    `json:"url"`
-}
-
 func (s *PurgeService) Status(r PurgeStatusRequest) (*[]PurgeStatusResponseRequests, error) {
 
 	url := *s.request.BaseURL
