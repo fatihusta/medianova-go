@@ -58,35 +58,6 @@ func (s *PrefetchService) Prefetch(organizationUUID string, p PrefetchRequest) (
 	return utils.FromJSONToStruct[*PrefetchResponse](resp)
 }
 
-type PrefetchStatusRequest struct {
-	OrganizationUUID string
-	ResourceUUID     string
-	OpID             string
-}
-
-type PrefetchStatusResponse struct {
-	Status  bool                          `json:"status"`
-	Payload PrefetchStatusResponsePayload `json:"data"`
-}
-
-type PrefetchStatusResponsePayload struct {
-	Page     int                              `json:"page"`
-	Total    int                              `json:"total"`
-	Limit    int                              `json:"limit"`
-	Search   string                           `json:"search"`
-	Requests []PrefetchStatusResponseRequests `json:"requests"`
-}
-
-type PrefetchStatusResponseRequests struct {
-	CompletedAt time.Time `json:"completedAt"`
-	CreatedAt   time.Time `json:"createdAt"`
-	StartedAt   time.Time `json:"startedAt"`
-	Message     string    `json:"message"`
-	OpID        string    `json:"opID"`
-	Status      int       `json:"status"`
-	URL         string    `json:"url"`
-}
-
 func (s *PrefetchService) Status(r PrefetchStatusRequest) (*[]PrefetchStatusResponseRequests, error) {
 
 	url := *s.request.BaseURL
