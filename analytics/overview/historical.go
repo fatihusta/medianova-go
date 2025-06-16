@@ -28,7 +28,7 @@ const (
 // CalcType enum values
 const (
 	RequestNumber CalcType = "request_number"
-	ByteSize      CalcType = "bytes_sent"
+	ByteSent      CalcType = "bytes_sent"
 )
 
 func (s *HistoricalService) Get(ctx context.Context, reportRequest HistoricalReportRequest) (*HistoricalHitResponse, error) {
