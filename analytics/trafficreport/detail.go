@@ -2,7 +2,6 @@ package trafficreport
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -32,22 +31,6 @@ func (s *TrafficReportDetailService) Get(ctx context.Context, reportRequest Traf
 	if err != nil {
 		return &TrafficReportDetailResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &TrafficReportDetailResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &TrafficReportDetailResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &TrafficReportDetailResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*TrafficReportDetailResponse](resp)
+	return utils.DoHTTPRequest[*TrafficReportDetailResponse](s.request.GetClient(), req)
 }

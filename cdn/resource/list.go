@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -51,18 +50,5 @@ func (s *ResourceService) getResources(ctx context.Context, url url.URL) (*Resou
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &ResourceListResponse{}, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &ResourceListResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &ResourceListResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*ResourceListResponse](resp)
+	return utils.DoHTTPRequest[*ResourceListResponse](s.request.GetClient(), req)
 }

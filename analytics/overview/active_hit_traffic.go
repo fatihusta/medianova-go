@@ -2,7 +2,6 @@ package overview
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -20,13 +19,13 @@ func NewActiveHitTrafficService(reqCfg *request.RequestConfig) *ActiveHitTraffic
 
 // ActiveType enum values
 const (
-	ActiveTypeHit            ActiveType = "active_hit"
-	ActiveTypeRequests       ActiveType = "active_requests"
-	ActiveTypeHitRatio       ActiveType = "active_hit_ratio"
-	ActiveTypeTraffic        ActiveType = "active_traffic"
-	ActiveTypeBandwidth      ActiveType = "active_bandwitdh"
-	ActiveTypeGPUTransaction ActiveType = "active_gpu_transaction"
-	ActiveTypeStorage        ActiveType = "active_storage"
+	ActiveTypeHit     ActiveType = "active_hit"
+	ActiveTypeTraffic ActiveType = "active_traffic"
+	// ActiveTypeRequests       ActiveType = "active_requests" // 404
+	// ActiveTypeHitRatio       ActiveType = "active_hit_ratio" // 404
+	// ActiveTypeBandwidth      ActiveType = "active_bandwitdh" // 404
+	// ActiveTypeGPUTransaction ActiveType = "active_gpu_transaction" // 404
+	// ActiveTypeStorage        ActiveType = "active_storage" // 404
 )
 
 func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveType, reportRequest ActiveHitTrafficRequest) (*ActiveHitTrafficResponse, error) {
@@ -43,22 +42,6 @@ func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveTyp
 	if err != nil {
 		return &ActiveHitTrafficResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &ActiveHitTrafficResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &ActiveHitTrafficResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &ActiveHitTrafficResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*ActiveHitTrafficResponse](resp)
+	return utils.DoHTTPRequest[*ActiveHitTrafficResponse](s.request.GetClient(), req)
 }

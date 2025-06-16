@@ -2,7 +2,6 @@ package overview
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -32,22 +31,6 @@ func (s *VisitorsCountriesService) Get(ctx context.Context, reportRequest Visito
 	if err != nil {
 		return &VisitorsCountriesResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &VisitorsCountriesResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &VisitorsCountriesResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &VisitorsCountriesResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*VisitorsCountriesResponse](resp)
+	return utils.DoHTTPRequest[*VisitorsCountriesResponse](s.request.GetClient(), req)
 }

@@ -2,7 +2,6 @@ package overview
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -32,22 +31,6 @@ func (s *ErrorsService) Get(ctx context.Context, reportRequest ErrorsRequest) (*
 	if err != nil {
 		return &ErrorsResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &ErrorsResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &ErrorsResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &ErrorsResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*ErrorsResponse](resp)
+	return utils.DoHTTPRequest[*ErrorsResponse](s.request.GetClient(), req)
 }

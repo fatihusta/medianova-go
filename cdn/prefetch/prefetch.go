@@ -2,7 +2,6 @@ package prefetch
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -37,25 +36,8 @@ func (s *PrefetchService) Prefetch(organizationUUID string, p PrefetchRequest) (
 	if err != nil {
 		return &PrefetchResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &PrefetchResponse{}, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &PrefetchResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &PrefetchResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*PrefetchResponse](resp)
+	return utils.DoHTTPRequest[*PrefetchResponse](s.request.GetClient(), req)
 }
 
 func (s *PrefetchService) Status(r PrefetchStatusRequest) (*[]PrefetchStatusResponseRequests, error) {
@@ -109,22 +91,5 @@ func (s *PrefetchService) getPrefetchStatus(ctx context.Context, url url.URL) (*
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	req.Header.Set("accept", "application/json")
-
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &PrefetchStatusResponse{}, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &PrefetchStatusResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &PrefetchStatusResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*PrefetchStatusResponse](resp)
+	return utils.DoHTTPRequest[*PrefetchStatusResponse](s.request.GetClient(), req)
 }

@@ -2,7 +2,6 @@ package errorlogs
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 	"strconv"
@@ -42,22 +41,6 @@ func (s *ErrorLogsStatusCodesService) Get(ctx context.Context, page int, reportR
 	if err != nil {
 		return &ErrorLogsStatusCodesResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &ErrorLogsStatusCodesResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &ErrorLogsStatusCodesResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &ErrorLogsStatusCodesResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*ErrorLogsStatusCodesResponse](resp)
+	return utils.DoHTTPRequest[*ErrorLogsStatusCodesResponse](s.request.GetClient(), req)
 }

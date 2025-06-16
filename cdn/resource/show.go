@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -17,20 +16,6 @@ func (s *ResourceService) Show(organizationUUID, resourceUUID string) (*Resource
 	defer cancel()
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &ResourceDetails{}, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &ResourceDetails{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &ResourceDetails{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*ResourceDetails](resp)
+	return utils.DoHTTPRequest[*ResourceDetails](s.request.GetClient(), req)
 }
