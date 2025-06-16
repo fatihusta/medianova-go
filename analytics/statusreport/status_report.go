@@ -2,7 +2,6 @@ package statusreport
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -39,22 +38,6 @@ func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, r
 	if err != nil {
 		return &StatusReportResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &StatusReportResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &StatusReportResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &StatusReportResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*StatusReportResponse](resp)
+	return utils.DoHTTPRequest[*StatusReportResponse](s.request.GetClient(), req)
 }

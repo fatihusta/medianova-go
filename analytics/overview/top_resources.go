@@ -2,7 +2,6 @@ package overview
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -32,22 +31,6 @@ func (s *TopResourcesService) Get(ctx context.Context, reportRequest TopResource
 	if err != nil {
 		return &TopResourcesResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &TopResourcesResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &TopResourcesResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &TopResourcesResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*TopResourcesResponse](resp)
+	return utils.DoHTTPRequest[*TopResourcesResponse](s.request.GetClient(), req)
 }

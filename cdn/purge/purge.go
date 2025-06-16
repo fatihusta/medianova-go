@@ -2,7 +2,6 @@ package purge
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -37,25 +36,8 @@ func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) (*PurgeRes
 	if err != nil {
 		return &PurgeResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &PurgeResponse{}, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &PurgeResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &PurgeResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*PurgeResponse](resp)
+	return utils.DoHTTPRequest[*PurgeResponse](s.request.GetClient(), req)
 }
 
 func (s *PurgeService) Status(r PurgeStatusRequest) (*[]PurgeStatusResponseRequests, error) {
@@ -109,22 +91,5 @@ func (s *PurgeService) getPurgeStatus(ctx context.Context, url url.URL) (*PurgeS
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	req.Header.Set("accept", "application/json")
-
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &PurgeStatusResponse{}, err
-	}
-
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &PurgeStatusResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &PurgeStatusResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*PurgeStatusResponse](resp)
+	return utils.DoHTTPRequest[*PurgeStatusResponse](s.request.GetClient(), req)
 }

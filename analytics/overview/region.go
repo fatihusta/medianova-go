@@ -2,7 +2,6 @@ package overview
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 
@@ -32,22 +31,6 @@ func (s *RegionService) Get(ctx context.Context, reportRequest RegionRequest) (*
 	if err != nil {
 		return &RegionResponse{}, err
 	}
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("accept", "application/json")
 
-	resp, err := s.request.Do(req)
-	if err != nil {
-		return &RegionResponse{}, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		errMsg, err := utils.ToStringBody(resp)
-		if err == nil {
-			return &RegionResponse{}, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
-		}
-		return &RegionResponse{}, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
-	}
-
-	return utils.FromJSONToStruct[*RegionResponse](resp)
+	return utils.DoHTTPRequest[*RegionResponse](s.request.GetClient(), req)
 }
