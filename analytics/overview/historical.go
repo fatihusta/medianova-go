@@ -25,12 +25,6 @@ const (
 	Traffic  StatType = "traffic"
 )
 
-// CalcType enum values
-const (
-	RequestNumber CalcType = "request_number"
-	ByteSent      CalcType = "bytes_sent"
-)
-
 func (s *HistoricalService) GetHit(ctx context.Context, reportRequest HistoricalReportRequest) (*HistoricalHitResponse, error) {
 
 	if reportRequest.Type != Hit {

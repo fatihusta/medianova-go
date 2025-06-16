@@ -3,9 +3,6 @@ package overview
 // StatType enum
 type StatType string
 
-// CalcType enum
-type CalcType string
-
 // HistoricalReport struct
 //
 //	body {
@@ -23,7 +20,6 @@ type HistoricalReportRequest struct {
 	Type             StatType `json:"type"`
 	From             string   `json:"from"`
 	To               string   `json:"to"`
-	CalcType         CalcType `json:"calc_type"`
 	Resources        []string `json:"resources"`
 }
 
