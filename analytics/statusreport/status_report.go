@@ -20,6 +20,7 @@ func NewStatusReportService(reqCfg *request.RequestConfig) *StatusReportService 
 // StatusCode enum values
 const (
 	Status2xx StatusCode = "2xx"
+	Status3xx StatusCode = "3xx"
 	Status4xx StatusCode = "4xx"
 	Status5xx StatusCode = "5xx"
 )
