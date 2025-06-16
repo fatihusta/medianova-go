@@ -16,7 +16,7 @@ type RequestConfig struct {
 	RequestTimeout time.Duration `yaml:"request_timeout,omitempty"`
 }
 
-func NewRequest() *RequestConfig {
+func NewRequestConfig() *RequestConfig {
 	base_url, _ := url.Parse(CloudAPI)
 	return &RequestConfig{
 		BaseURL:        base_url,
