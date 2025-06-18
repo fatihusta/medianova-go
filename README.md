@@ -54,7 +54,7 @@ func main() {
 	}
 
 	for _, r := range resources {
-		fmt.Printf(" Resouce UUID:%s, Resource CDN URL:%s\n", r.ResourceUUID, r.CdnURL)
+		fmt.Printf("Resouce UUID:%s, Resource CDN URL:%s\n", r.ResourceUUID, r.CdnURL)
 	}
 }
 ```
@@ -77,6 +77,6 @@ func main() {
 - CDN > Purge > status
 - CDN > Prefetch > prefetch
 - CDN > Prefetch > status
-- Organizations > list
-- Organizations > show
-- Organizations > users
+- Organization > list
+- Organization > show
+- Organization > users
