@@ -25,7 +25,6 @@ import (
 
 func main() {
 	organizationToken := "MEDIANOVA_ORG_TOKEN"
-	organizationUUID := "MEDIANOVA_ORG_UUID"
 
 	/*
 		logLevel := &slog.LevelVar{}
@@ -42,7 +41,13 @@ func main() {
 	)
 	mn := client.NewClient(reqConfig, middlewares)
 
-	resources, err := mn.CDN.Resource.List(organizationUUID)
+	organizations, err := mn.Organization.List()
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
+
+	resources, err := mn.CDN.Resource.List(organizations[0].UUID)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
@@ -55,12 +60,6 @@ func main() {
 ```
 
 # Supported API endpoints
-- CDN > Resource > list
-- CDN > Resource > show
-- CDN > Purge > purge
-- CDN > Purge > status
-- CDN > Prefetch > prefetch
-- CDN > Prefetch > status
 - Analytics > Overview > historical
 - Analytics > Overview > top resources
 - Analytics > Overview > errors
@@ -72,3 +71,12 @@ func main() {
 - Analytics > RequestReport > detail
 - Analytics > StatusReport > status report
 - Analytics > TrafficReport > detail report
+- CDN > Resource > list
+- CDN > Resource > show
+- CDN > Purge > purge
+- CDN > Purge > status
+- CDN > Prefetch > prefetch
+- CDN > Prefetch > status
+- Organizations > list
+- Organizations > show
+- Organizations > users
