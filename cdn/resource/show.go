@@ -17,5 +17,6 @@ func (s *ResourceService) Show(organizationUUID, resourceUUID string) (*Resource
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	return utils.DoHTTPRequest[*ResourceDetails](s.request.GetClient(), req)
+	result, err := utils.DoHTTPRequest[*ResourceDetailsResponse](s.request.GetClient(), req)
+	return &result.Payload, err
 }
