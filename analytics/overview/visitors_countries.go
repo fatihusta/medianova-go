@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type VisitorsCountriesService struct {
@@ -17,11 +18,14 @@ func NewVisitorsCountriesService(reqCfg *request.RequestConfig) *VisitorsCountri
 	return &VisitorsCountriesService{request: reqCfg}
 }
 
-func (s *VisitorsCountriesService) Get(ctx context.Context, reportRequest VisitorsCountriesRequest) (*VisitorsCountriesResponse, error) {
+func (s *VisitorsCountriesService) Get(ctx context.Context, reportRequest VisitorsCountriesRequest) *common.Result[VisitorsCountriesResponse] {
+
+	result := common.NewResult[VisitorsCountriesResponse]()
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &VisitorsCountriesResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -29,8 +33,9 @@ func (s *VisitorsCountriesService) Get(ctx context.Context, reportRequest Visito
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &VisitorsCountriesResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*VisitorsCountriesResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[VisitorsCountriesResponse](s.request.GetClient(), req)
 }

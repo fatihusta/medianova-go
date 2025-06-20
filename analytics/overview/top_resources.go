@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type TopResourcesService struct {
@@ -17,11 +18,14 @@ func NewTopResourcesService(reqCfg *request.RequestConfig) *TopResourcesService 
 	return &TopResourcesService{request: reqCfg}
 }
 
-func (s *TopResourcesService) Get(ctx context.Context, reportRequest TopResourcesRequest) (*TopResourcesResponse, error) {
+func (s *TopResourcesService) Get(ctx context.Context, reportRequest TopResourcesRequest) *common.Result[TopResourcesResponse] {
+
+	result := common.NewResult[TopResourcesResponse]()
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &TopResourcesResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -29,8 +33,9 @@ func (s *TopResourcesService) Get(ctx context.Context, reportRequest TopResource
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &TopResourcesResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*TopResourcesResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[TopResourcesResponse](s.request.GetClient(), req)
 }

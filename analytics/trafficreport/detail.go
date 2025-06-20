@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type TrafficReportDetailService struct {
@@ -17,11 +18,13 @@ func NewTrafficReportDetailService(reqCfg *request.RequestConfig) *TrafficReport
 	return &TrafficReportDetailService{request: reqCfg}
 }
 
-func (s *TrafficReportDetailService) Get(ctx context.Context, reportRequest TrafficReportDetailRequest) (*TrafficReportDetailResponse, error) {
+func (s *TrafficReportDetailService) Get(ctx context.Context, reportRequest TrafficReportDetailRequest) *common.Result[TrafficReportDetailResponse] {
 
+	result := common.NewResult[TrafficReportDetailResponse]()
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &TrafficReportDetailResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -29,8 +32,9 @@ func (s *TrafficReportDetailService) Get(ctx context.Context, reportRequest Traf
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &TrafficReportDetailResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*TrafficReportDetailResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[TrafficReportDetailResponse](s.request.GetClient(), req)
 }

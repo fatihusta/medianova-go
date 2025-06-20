@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type ActiveHitTrafficService struct {
@@ -28,11 +29,14 @@ const (
 	// ActiveTypeStorage        ActiveType = "active_storage" // 404
 )
 
-func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveType, reportRequest ActiveHitTrafficRequest) (*ActiveHitTrafficResponse, error) {
+func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveType, reportRequest ActiveHitTrafficRequest) *common.Result[ActiveHitTrafficResponse] {
+
+	result := common.NewResult[ActiveHitTrafficResponse]()
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &ActiveHitTrafficResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -40,8 +44,9 @@ func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveTyp
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &ActiveHitTrafficResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*ActiveHitTrafficResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[ActiveHitTrafficResponse](s.request.GetClient(), req)
 }

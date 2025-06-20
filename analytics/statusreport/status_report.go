@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type StatusReportService struct {
@@ -25,11 +26,14 @@ const (
 	Status5xx StatusCode = "5xx"
 )
 
-func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, reportRequest StatusReportRequest) (*StatusReportResponse, error) {
+func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, reportRequest StatusReportRequest) *common.Result[StatusReportResponse] {
+
+	result := common.NewResult[StatusReportResponse]()
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &StatusReportResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -37,8 +41,9 @@ func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, r
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &StatusReportResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*StatusReportResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[StatusReportResponse](s.request.GetClient(), req)
 }

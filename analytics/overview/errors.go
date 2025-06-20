@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type ErrorsService struct {
@@ -17,11 +18,13 @@ func NewErrorsService(reqCfg *request.RequestConfig) *ErrorsService {
 	return &ErrorsService{request: reqCfg}
 }
 
-func (s *ErrorsService) Get(ctx context.Context, reportRequest ErrorsRequest) (*ErrorsResponse, error) {
+func (s *ErrorsService) Get(ctx context.Context, reportRequest ErrorsRequest) *common.Result[ErrorsResponse] {
 
+	result := common.NewResult[ErrorsResponse]()
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &ErrorsResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -29,8 +32,9 @@ func (s *ErrorsService) Get(ctx context.Context, reportRequest ErrorsRequest) (*
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &ErrorsResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*ErrorsResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[ErrorsResponse](s.request.GetClient(), req)
 }

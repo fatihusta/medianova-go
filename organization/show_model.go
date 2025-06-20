@@ -15,7 +15,7 @@ type OrganizationDetailsServices struct {
 	Slug             string    `json:"slug"`
 	OrganizationUUID string    `json:"organization_uuid"`
 	ServiceStatus    bool      `json:"service_status"`
-	Extras           []any     `json:"extras"`
+	Extras           any       `json:"extras"`
 	PackageID        any       `json:"package_id"`
 	PackageName      string    `json:"package_name"`
 }

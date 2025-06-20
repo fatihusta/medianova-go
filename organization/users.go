@@ -8,10 +8,11 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
-func (s *OrganizationService) Users(organizationUUID string) (*OrganizationUsersResponse, error) {
-	url, _ := url.Parse(request.CloudAPI + request.BaseAPIPath) // v1 :)
+func (s *OrganizationService) Users(organizationUUID string) *common.Result[OrganizationUsersResponse] {
+	url, _ := url.Parse(request.CloudAPIv1) // v1 :)
 	url.Path = path.Join(url.Path, "organizations", organizationUUID, "users")
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
@@ -19,5 +20,5 @@ func (s *OrganizationService) Users(organizationUUID string) (*OrganizationUsers
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	return utils.DoHTTPRequest[*OrganizationUsersResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[OrganizationUsersResponse](s.request.GetClient(), req)
 }
