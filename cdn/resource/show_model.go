@@ -67,7 +67,7 @@ type ResourceDetails struct {
 	OriginType             string             `json:"origin_type"`
 	OriginSettings         []any              `json:"origin_settings"`
 	AdvancedOriginSettings []any              `json:"advanced_origin_settings"`
-	Status                 bool               `json:"status"`
+	Status                 any                `json:"status"` // medianova bug, string or int
 	UpdatingStatus         string             `json:"updating_status"`
 	CreatedAt              time.Time          `json:"created_at"`
 	UpdatedAt              time.Time          `json:"updated_at"`
