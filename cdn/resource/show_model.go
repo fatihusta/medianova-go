@@ -38,7 +38,7 @@ type BrowserCacheRules struct {
 
 type StatusCodeCache struct {
 	StatusCodes []int  `json:"status_codes"`
-	CacheExpiry int    `json:"cache_expiry"`
+	CacheExpiry any    `json:"cache_expiry"`
 	CacheUnit   string `json:"cache_unit"`
 }
 
