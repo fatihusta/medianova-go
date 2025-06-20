@@ -38,7 +38,7 @@ type BrowserCacheRules struct {
 
 type StatusCodeCache struct {
 	StatusCodes []int  `json:"status_codes"`
-	CacheExpiry int    `json:"cache_expiry"`
+	CacheExpiry any    `json:"cache_expiry"`
 	CacheUnit   string `json:"cache_unit"`
 }
 
@@ -67,7 +67,7 @@ type ResourceDetails struct {
 	OriginType             string             `json:"origin_type"`
 	OriginSettings         []any              `json:"origin_settings"`
 	AdvancedOriginSettings []any              `json:"advanced_origin_settings"`
-	Status                 bool               `json:"status"`
+	Status                 any                `json:"status"` // medianova bug, string or int
 	UpdatingStatus         string             `json:"updating_status"`
 	CreatedAt              time.Time          `json:"created_at"`
 	UpdatedAt              time.Time          `json:"updated_at"`
@@ -169,7 +169,7 @@ type ResourceDetails struct {
 	StatusHstsProtection         bool                 `json:"status_hsts_protection"`
 	IncludeSubDomains            bool                 `json:"include_sub_domains"`
 	Preload                      bool                 `json:"preload"`
-	MaxAgeTime                   int                  `json:"max_age_time"`
+	MaxAgeTime                   any                  `json:"max_age_time"` // medianova bug. string or int
 	TrustedDomains               []any                `json:"trusted_domains"`
 	StatusHlProtection           bool                 `json:"status_hl_protection"`
 	HlProtectionType             any                  `json:"hl_protection_type"`
