@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type PrefetchService struct {
@@ -20,27 +21,33 @@ func NewPrefetchService(reqCfg *request.RequestConfig) *PrefetchService {
 	return &PrefetchService{request: reqCfg}
 }
 
-func (s *PrefetchService) Prefetch(organizationUUID string, p PrefetchRequest) (*PrefetchResponse, error) {
+func (s *PrefetchService) Prefetch(organizationUUID string, p PrefetchRequest) *common.Result[PrefetchResponse] {
+
+	result := common.NewResult[PrefetchResponse]()
 
 	url := *s.request.BaseURL
 	url.Path = path.Join(url.Path, "cdn", organizationUUID, "job", p.ResourceUUID, "prefetch")
 
 	body, err := utils.ToJSONBodyBuffer(p)
 	if err != nil {
-		return &PrefetchResponse{}, err
+		result.Error = err
+		return result
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &PrefetchResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*PrefetchResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[PrefetchResponse](s.request.GetClient(), req)
 }
 
-func (s *PrefetchService) Status(r PrefetchStatusRequest) (*[]PrefetchStatusResponseRequests, error) {
+func (s *PrefetchService) Status(r PrefetchStatusRequest) *common.Result[[]PrefetchStatusResponseRequests] {
+
+	result := common.NewResult[[]PrefetchStatusResponseRequests]()
 
 	url := *s.request.BaseURL
 	url.Path = path.Join(url.Path, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "prefetch")
@@ -59,37 +66,43 @@ func (s *PrefetchService) Status(r PrefetchStatusRequest) (*[]PrefetchStatusResp
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 	defer cancel()
 
-	resp, err := s.getPrefetchStatus(ctx, url)
-	if err != nil {
-		return &prefetchResponse, err
+	resp := s.getPrefetchStatus(ctx, url)
+	if resp.Error != nil {
+		result.Error = resp.Error
+		return result
 	}
 
-	prefetchResponse = append(prefetchResponse, resp.Payload.Requests...)
+	prefetchResponse = append(prefetchResponse, resp.Body.Payload.Requests...)
 
 	// Auto Pagination
-	if resp.Payload.Total > limit {
-		total := resp.Payload.Total
+	if resp.Body.Payload.Total > limit {
+		total := resp.Body.Payload.Total
 		for done := limit; done <= total; done += limit {
 			page += 1
 			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 			q := url.Query()
 			q.Set("page", strconv.Itoa(page))
 			url.RawQuery = q.Encode()
-			resp, err := s.getPrefetchStatus(ctx, url)
+			resp := s.getPrefetchStatus(ctx, url)
 			cancel()
-			if err != nil {
-				return &[]PrefetchStatusResponseRequests{}, err
+			if resp.Error != nil {
+				result.Error = resp.Error
+				return result
 			}
-			prefetchResponse = append(prefetchResponse, resp.Payload.Requests...)
+			prefetchResponse = append(prefetchResponse, resp.Body.Payload.Requests...)
 		}
 	}
 
-	return &prefetchResponse, nil
+	result.Status = resp.Status
+	result.Headers = resp.Headers
+	result.Body = prefetchResponse
+
+	return result
 }
 
-func (s *PrefetchService) getPrefetchStatus(ctx context.Context, url url.URL) (*PrefetchStatusResponse, error) {
+func (s *PrefetchService) getPrefetchStatus(ctx context.Context, url url.URL) *common.Result[PrefetchStatusResponse] {
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	return utils.DoHTTPRequest[*PrefetchStatusResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[PrefetchStatusResponse](s.request.GetClient(), req)
 }

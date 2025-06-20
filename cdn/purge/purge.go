@@ -10,6 +10,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type PurgeService struct {
@@ -20,27 +21,33 @@ func NewPurgeService(reqCfg *request.RequestConfig) *PurgeService {
 	return &PurgeService{request: reqCfg}
 }
 
-func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) (*PurgeResponse, error) {
+func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) *common.Result[PurgeResponse] {
+
+	result := common.NewResult[PurgeResponse]()
 
 	url := *s.request.BaseURL
 	url.Path = path.Join(url.Path, "cdn", organizationUUID, "job", p.ResourceUUID, "purge")
 
 	body, err := utils.ToJSONBodyBuffer(p)
 	if err != nil {
-		return &PurgeResponse{}, err
+		result.Error = err
+		return result
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &PurgeResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*PurgeResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[PurgeResponse](s.request.GetClient(), req)
 }
 
-func (s *PurgeService) Status(r PurgeStatusRequest) (*[]PurgeStatusResponseRequests, error) {
+func (s *PurgeService) Status(r PurgeStatusRequest) *common.Result[[]PurgeStatusResponseRequests] {
+
+	result := common.NewResult[[]PurgeStatusResponseRequests]()
 
 	url := *s.request.BaseURL
 	url.Path = path.Join(url.Path, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "purge")
@@ -59,37 +66,43 @@ func (s *PurgeService) Status(r PurgeStatusRequest) (*[]PurgeStatusResponseReque
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 	defer cancel()
 
-	resp, err := s.getPurgeStatus(ctx, url)
-	if err != nil {
-		return &purgeResponse, err
+	resp := s.getPurgeStatus(ctx, url)
+	if resp.Error != nil {
+		result.Error = resp.Error
+		return result
 	}
 
-	purgeResponse = append(purgeResponse, resp.Payload.Requests...)
+	purgeResponse = append(purgeResponse, resp.Body.Payload.Requests...)
 
 	// Auto Pagination
-	if resp.Payload.Total > limit {
-		total := resp.Payload.Total
+	if resp.Body.Payload.Total > limit {
+		total := resp.Body.Payload.Total
 		for done := limit; done <= total; done += limit {
 			page += 1
 			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
 			q := url.Query()
 			q.Set("page", strconv.Itoa(page))
 			url.RawQuery = q.Encode()
-			resp, err := s.getPurgeStatus(ctx, url)
+			resp := s.getPurgeStatus(ctx, url)
 			cancel()
-			if err != nil {
-				return &[]PurgeStatusResponseRequests{}, err
+			if resp.Error != nil {
+				result.Error = resp.Error
+				return result
 			}
-			purgeResponse = append(purgeResponse, resp.Payload.Requests...)
+			purgeResponse = append(purgeResponse, resp.Body.Payload.Requests...)
 		}
 	}
 
-	return &purgeResponse, nil
+	result.Status = resp.Status
+	result.Headers = resp.Headers
+	result.Body = purgeResponse
+
+	return result
 }
 
-func (s *PurgeService) getPurgeStatus(ctx context.Context, url url.URL) (*PurgeStatusResponse, error) {
+func (s *PurgeService) getPurgeStatus(ctx context.Context, url url.URL) *common.Result[PurgeStatusResponse] {
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	return utils.DoHTTPRequest[*PurgeStatusResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[PurgeStatusResponse](s.request.GetClient(), req)
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type ErrorReportStatusCodesService struct {
@@ -17,11 +18,14 @@ func NewErrorReportStatusCodesService(reqCfg *request.RequestConfig) *ErrorRepor
 	return &ErrorReportStatusCodesService{request: reqCfg}
 }
 
-func (s *ErrorReportStatusCodesService) Get(ctx context.Context, reportRequest ErrorReportStatusCodesRequest) (*ErrorReportStatusCodesResponse, error) {
+func (s *ErrorReportStatusCodesService) Get(ctx context.Context, reportRequest ErrorReportStatusCodesRequest) *common.Result[ErrorReportStatusCodesResponse] {
+
+	result := common.NewResult[ErrorReportStatusCodesResponse]()
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &ErrorReportStatusCodesResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -29,8 +33,9 @@ func (s *ErrorReportStatusCodesService) Get(ctx context.Context, reportRequest E
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &ErrorReportStatusCodesResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*ErrorReportStatusCodesResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[ErrorReportStatusCodesResponse](s.request.GetClient(), req)
 }

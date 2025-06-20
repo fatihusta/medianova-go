@@ -7,51 +7,62 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+
+	"github.com/fatihusta/medianova-go/common"
 )
 
-func DoHTTPRequest[T any](c *http.Client, req *http.Request) (T, error) {
-
-	var result T
+func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return result, err
+		return common.NewResult[T]()
 	}
 	defer resp.Body.Close()
+
+	return Result[T](resp)
+}
+
+func Result[T any](resp *http.Response) *common.Result[T] {
+	result := common.NewResult[T]()
+
+	result.Status = resp.StatusCode
 
 	if resp.StatusCode != http.StatusOK {
 		errMsg, err := ToStringBody(resp)
 		if err == nil {
-			return result, fmt.Errorf("request not succeeded. status:%d, error:%s", resp.StatusCode, errMsg)
+			result.Error = fmt.Errorf("request not succeeded, error:%s", errMsg)
+		} else {
+			result.Error = fmt.Errorf("request not succeeded")
 		}
-		return result, fmt.Errorf("request not succeeded. status:%d", resp.StatusCode)
+
+		return result
 	}
 
-	return FromJSONToStruct[T](resp)
-}
-
-func FromJSONToStruct[T any](resp *http.Response) (T, error) {
-	var response T
 	if resp.Body == nil {
-		return response, fmt.Errorf("response body is empty")
+		result.Error = fmt.Errorf("response body is empty")
+		return result
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return response, err
+		result.Error = err
+		return result
 	}
 
-	err = json.Unmarshal(respBody, &response)
+	err = json.Unmarshal(respBody, &result.Body)
 	if err != nil {
-		return response, err
+		result.Error = err
+		return result
 	}
 
-	slog.Debug("response", slog.String("body", string(respBody)))
+	result.Headers = resp.Header
 
-	return response, nil
+	slog.Debug("result", slog.String("body", string(respBody)))
+
+	return result
 }
 
 func ToJSONBodyBuffer[T any](input T) (*bytes.Buffer, error) {

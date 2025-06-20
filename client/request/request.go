@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	CloudAPI    = "https://cloud.medianova.com"
-	BaseAPIPath = "/api/v1"
+	CloudAPIv1 = "https://cloud.medianova.com/api/v1"
+	CloudAPIv2 = "https://cloud.medianova.com/api/v2"
 )
 
 type RequestConfig struct {
@@ -18,7 +18,7 @@ type RequestConfig struct {
 }
 
 func NewRequestConfig() *RequestConfig {
-	base_url, _ := url.Parse(CloudAPI + BaseAPIPath)
+	base_url, _ := url.Parse(CloudAPIv1)
 	return &RequestConfig{
 		BaseURL:        base_url,
 		RequestTimeout: 5 * time.Second,

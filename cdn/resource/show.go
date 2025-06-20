@@ -6,9 +6,11 @@ import (
 	"path"
 
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
-func (s *ResourceService) Show(organizationUUID, resourceUUID string) (*ResourceDetailsResponse, error) {
+func (s *ResourceService) Show(organizationUUID, resourceUUID string) *common.Result[ResourceDetailsResponse] {
+
 	url := *s.request.BaseURL
 	url.Path = path.Join(url.Path, "cdn", organizationUUID, "resource", resourceUUID)
 
@@ -17,5 +19,5 @@ func (s *ResourceService) Show(organizationUUID, resourceUUID string) (*Resource
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
 
-	return utils.DoHTTPRequest[*ResourceDetailsResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[ResourceDetailsResponse](s.request.GetClient(), req)
 }

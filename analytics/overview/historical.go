@@ -8,6 +8,7 @@ import (
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
+	"github.com/fatihusta/medianova-go/common"
 )
 
 type HistoricalService struct {
@@ -25,15 +26,19 @@ const (
 	Traffic  StatType = "traffic"
 )
 
-func (s *HistoricalService) GetHit(ctx context.Context, reportRequest HistoricalReportRequest) (*HistoricalHitResponse, error) {
+func (s *HistoricalService) GetHit(ctx context.Context, reportRequest HistoricalReportRequest) *common.Result[HistoricalHitResponse] {
+
+	result := common.NewResult[HistoricalHitResponse]()
 
 	if reportRequest.Type != Hit {
-		return &HistoricalHitResponse{}, fmt.Errorf("type should be hit")
+		result.Error = fmt.Errorf("type should be hit")
+		return result
 	}
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &HistoricalHitResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -41,21 +46,26 @@ func (s *HistoricalService) GetHit(ctx context.Context, reportRequest Historical
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &HistoricalHitResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*HistoricalHitResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[HistoricalHitResponse](s.request.GetClient(), req)
 }
 
-func (s *HistoricalService) GetHitRatio(ctx context.Context, reportRequest HistoricalReportRequest) (*HistoricalHitRatioResponse, error) {
+func (s *HistoricalService) GetHitRatio(ctx context.Context, reportRequest HistoricalReportRequest) *common.Result[HistoricalHitRatioResponse] {
+
+	result := common.NewResult[HistoricalHitRatioResponse]()
 
 	if reportRequest.Type != HitRatio {
-		return &HistoricalHitRatioResponse{}, fmt.Errorf("type should be hit_ratio")
+		result.Error = fmt.Errorf("type should be hit_ratio")
+		return result
 	}
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &HistoricalHitRatioResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -63,21 +73,27 @@ func (s *HistoricalService) GetHitRatio(ctx context.Context, reportRequest Histo
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &HistoricalHitRatioResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*HistoricalHitRatioResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[HistoricalHitRatioResponse](s.request.GetClient(), req)
 }
 
-func (s *HistoricalService) GetTraffic(ctx context.Context, reportRequest HistoricalReportRequest) (*HistoricalTrafficResponse, error) {
+func (s *HistoricalService) GetTraffic(ctx context.Context, reportRequest HistoricalReportRequest) *common.Result[HistoricalTrafficResponse] {
+
+	result := common.NewResult[HistoricalTrafficResponse]()
 
 	if reportRequest.Type != Traffic {
-		return &HistoricalTrafficResponse{}, fmt.Errorf("type should be traffic")
+		result.Error = fmt.Errorf("type should be traffic")
+		return result
+
 	}
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
-		return &HistoricalTrafficResponse{}, err
+		result.Error = err
+		return result
 	}
 
 	url := *s.request.BaseURL
@@ -85,8 +101,9 @@ func (s *HistoricalService) GetTraffic(ctx context.Context, reportRequest Histor
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {
-		return &HistoricalTrafficResponse{}, err
+		result.Error = err
+		return result
 	}
 
-	return utils.DoHTTPRequest[*HistoricalTrafficResponse](s.request.GetClient(), req)
+	return utils.DoHTTPRequest[HistoricalTrafficResponse](s.request.GetClient(), req)
 }

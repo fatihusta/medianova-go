@@ -41,19 +41,19 @@ func main() {
 	)
 	mn := client.NewClient(reqConfig, middlewares)
 
-	organizations, err := mn.Organization.List()
-	if err != nil {
-		slog.Error(err.Error())
+	organizations := mn.Organization.List()
+	if organizations.Error != nil {
+		slog.Error(organizations.Error.Error())
 		os.Exit(1)
 	}
 
-	resources, err := mn.CDN.Resource.List(organizations[0].UUID)
-	if err != nil {
-		slog.Error(err.Error())
+	resources := mn.CDN.Resource.List(organizations.Body[0].UUID)
+	if resources.Error != nil {
+		slog.Error(resources.Error.Error())
 		os.Exit(1)
 	}
 
-	for _, r := range resources {
+	for _, r := range resources.Body {
 		fmt.Printf("Resouce UUID:%s, Resource CDN URL:%s\n", r.ResourceUUID, r.CdnURL)
 	}
 }
