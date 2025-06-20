@@ -169,7 +169,7 @@ type ResourceDetails struct {
 	StatusHstsProtection         bool                 `json:"status_hsts_protection"`
 	IncludeSubDomains            bool                 `json:"include_sub_domains"`
 	Preload                      bool                 `json:"preload"`
-	MaxAgeTime                   int                  `json:"max_age_time"`
+	MaxAgeTime                   any                  `json:"max_age_time"` // medianova bug. string or int
 	TrustedDomains               []any                `json:"trusted_domains"`
 	StatusHlProtection           bool                 `json:"status_hl_protection"`
 	HlProtectionType             any                  `json:"hl_protection_type"`
