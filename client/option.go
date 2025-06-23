@@ -1,47 +1,19 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
 	"time"
 )
 
-const organizationTokenKey = "org_token"
+const organizationTokenKey = "org-token"
 
 func AuthWithOrganizationToken(organizationToken string) Middleware {
 	return func(next http.RoundTripper) http.RoundTripper {
 
 		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {
-
-			if req.Method == http.MethodPost ||
-				req.Method == http.MethodPut ||
-				req.Method == http.MethodPatch {
-				// Read body and modify it
-				if req.Body != nil {
-					bodyBytes, err := io.ReadAll(req.Body)
-					if err != nil {
-						return nil, err
-					}
-					_ = req.Body.Close() // Close the original body
-
-					var jsonData map[string]any
-					if err := json.Unmarshal(bodyBytes, &jsonData); err == nil {
-						jsonData[organizationTokenKey] = organizationToken
-						modifiedBody, _ := json.Marshal(jsonData)
-						req.Body = io.NopCloser(bytes.NewBuffer(modifiedBody))
-						req.ContentLength = int64(len(modifiedBody))
-					}
-				}
-			} else {
-				// Append the key-value pair to the URL query parameters
-				q := req.URL.Query()
-				q.Set(organizationTokenKey, organizationToken)
-				req.URL.RawQuery = q.Encode()
-			}
+			req.Header.Set(organizationTokenKey, organizationToken)
 			return next.RoundTrip(req)
 		})
 	}
