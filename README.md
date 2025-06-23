@@ -59,6 +59,8 @@ func main() {
 }
 ```
 
+> Please contact to your Medianova Solution Engineer to obtain your Organization Token.
+
 # Supported API endpoints
 - Analytics > Overview > historical
 - Analytics > Overview > top resources
