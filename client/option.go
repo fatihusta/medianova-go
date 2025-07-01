@@ -33,8 +33,18 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 				if err == nil {
 					return resp, nil
 				}
+				statusCode := 0
+				if resp != nil {
+					statusCode = resp.StatusCode
+				}
 				slog.Error(err.Error(),
-					slog.String("Retrying", fmt.Sprintf("%d/%d", i, retries)))
+					slog.Int("status", statusCode),
+					slog.String("method", req.Method),
+					slog.String("scheme", req.URL.Scheme),
+					slog.String("host", req.URL.Host),
+					slog.String("path", req.URL.Path),
+					slog.String("Retrying", fmt.Sprintf("%d/%d", i, retries)),
+				)
 				time.Sleep(delay)
 			}
 			return resp, err

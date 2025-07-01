@@ -18,7 +18,9 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 	resp, err := c.Do(req)
 	if err != nil {
-		return common.NewResult[T]()
+		result := common.NewResult[T]()
+		result.Error = err
+		return result
 	}
 	defer resp.Body.Close()
 
