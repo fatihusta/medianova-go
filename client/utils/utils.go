@@ -18,8 +18,10 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 	resp, err := c.Do(req)
 	if err != nil {
+		errTempl := fmt.Sprintf("method:%s, url:%s",
+			req.Method, req.URL.Scheme+"://"+req.URL.Host+req.URL.Path)
 		result := common.NewResult[T]()
-		result.Error = err
+		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
 		return result
 	}
 	defer resp.Body.Close()
@@ -32,31 +34,34 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	result.Status = resp.StatusCode
 
+	errTempl := fmt.Sprintf("method:%s, url:%s",
+		resp.Request.Method, resp.Request.URL.Scheme+"://"+resp.Request.URL.Host+resp.Request.URL.Path)
+
 	if resp.StatusCode != http.StatusOK {
 		errMsg, err := ToStringBody(resp)
 		if err == nil {
-			result.Error = fmt.Errorf("request not succeeded, error:%s", errMsg)
+			result.Error = fmt.Errorf("request not succeeded, error:%s, %s", errMsg, errTempl)
 		} else {
-			result.Error = fmt.Errorf("request not succeeded")
+			result.Error = fmt.Errorf("request not succeeded, %s", errTempl)
 		}
 
 		return result
 	}
 
 	if resp.Body == nil {
-		result.Error = fmt.Errorf("response body is empty")
+		result.Error = fmt.Errorf("response body is empty, %s", errTempl)
 		return result
 	}
 
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
-		result.Error = err
+		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
 		return result
 	}
 
 	err = json.Unmarshal(respBody, &result.Body)
 	if err != nil {
-		result.Error = err
+		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
 		return result
 	}
 
