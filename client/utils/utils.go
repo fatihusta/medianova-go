@@ -61,7 +61,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	err = json.Unmarshal(respBody, &result.Body)
 	if err != nil {
-		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
+		result.Error = fmt.Errorf("%s, %s, body:%s", err.Error(), errTempl, respBody)
 		return result
 	}
 
