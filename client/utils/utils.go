@@ -95,3 +95,22 @@ func ToStringBody(resp *http.Response) (string, error) {
 
 	return string(respBody), nil
 }
+
+// Decode to struct
+func DecodeToStruct[T any](input any) (T, error) {
+	var result T
+
+	// to json
+	b, err := json.Marshal(input)
+	if err != nil {
+		return result, fmt.Errorf("marshal failed: %w", err)
+	}
+
+	// to struct
+	err = json.Unmarshal(b, &result)
+	if err != nil {
+		return result, fmt.Errorf("unmarshal failed: %w", err)
+	}
+
+	return result, nil
+}
