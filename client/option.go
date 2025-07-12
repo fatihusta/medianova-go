@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"net/http"
 	"time"
+
+	"github.com/fatihusta/medianova-go/client/utils"
 )
 
 const organizationTokenKey = "org-token"
@@ -38,6 +40,7 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					statusCode = resp.StatusCode
 				}
 				slog.Error(err.Error(),
+					slog.String("request_id", utils.GetRequestID(req.Context())),
 					slog.Int("status", statusCode),
 					slog.String("method", req.Method),
 					slog.String("scheme", req.URL.Scheme),
@@ -56,15 +59,15 @@ func LoggingMiddleware() Middleware {
 
 	return func(next http.RoundTripper) http.RoundTripper {
 		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {
-			slog.Debug("Starting request", slog.String("url", req.URL.String()))
+
+			slog.Debug("Starting request",
+				slog.String("request_id", utils.GetRequestID(req.Context())),
+				slog.String("url", req.URL.String()))
 
 			resp, err := next.RoundTrip(req)
 
-			if err != nil {
-				return nil, err
-			}
-
 			slog.Debug("Complated request",
+				slog.String("request_id", utils.GetRequestID(req.Context())),
 				slog.Int("status", resp.StatusCode),
 				slog.String("method", req.Method),
 				slog.String("scheme", req.URL.Scheme),
@@ -72,7 +75,7 @@ func LoggingMiddleware() Middleware {
 				slog.String("path", req.URL.Path),
 			)
 
-			return resp, nil
+			return resp, err
 		})
 	}
 }

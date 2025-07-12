@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -9,17 +10,30 @@ import (
 	"net/http"
 
 	"github.com/fatihusta/medianova-go/common"
+	"github.com/google/uuid"
 )
+
+const requestIDKey common.CtxKey = "request_id"
 
 func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
 
+	reqID := uuid.New().String()
+	req = req.WithContext(context.WithValue(req.Context(), requestIDKey, reqID))
+
+	slog.Debug("request",
+		slog.String(requestIDKey.String(), reqID),
+		slog.String("body", ReqBodyToString(req)))
+
 	resp, err := c.Do(req)
 	if err != nil {
-		errTempl := fmt.Sprintf("method:%s, url:%s",
-			req.Method, req.URL.Scheme+"://"+req.URL.Host+req.URL.Path)
+		errTempl := fmt.Sprintf("%s: %s, method: %s, url: %s",
+			requestIDKey,
+			reqID,
+			req.Method,
+			req.URL.Scheme+"://"+req.URL.Host+req.URL.Path)
 		result := common.NewResult[T]()
 		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
 		return result
@@ -34,8 +48,12 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	result.Status = resp.StatusCode
 
-	errTempl := fmt.Sprintf("method:%s, url:%s",
-		resp.Request.Method, resp.Request.URL.Scheme+"://"+resp.Request.URL.Host+resp.Request.URL.Path)
+	reqID := GetRequestID(resp.Request.Context())
+	errTempl := fmt.Sprintf("%s: %s, method: %s, url: %s",
+		requestIDKey,
+		reqID,
+		resp.Request.Method,
+		resp.Request.URL.Scheme+"://"+resp.Request.URL.Host+resp.Request.URL.Path)
 
 	if resp.StatusCode != http.StatusOK {
 		errMsg, err := ToStringBody(resp)
@@ -67,7 +85,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	result.Headers = resp.Header
 
-	slog.Debug("result", slog.String("body", string(respBody)))
+	slog.Debug("response", slog.String(requestIDKey.String(), reqID), slog.String("body", string(respBody)))
 
 	return result
 }
@@ -77,8 +95,6 @@ func ToJSONBodyBuffer[T any](input T) (*bytes.Buffer, error) {
 	if err != nil {
 		return &bytes.Buffer{}, err
 	}
-
-	slog.Debug("request", slog.String("body", string(body)))
 
 	return bytes.NewBuffer(body), nil
 }
@@ -94,6 +110,22 @@ func ToStringBody(resp *http.Response) (string, error) {
 	}
 
 	return string(respBody), nil
+}
+
+func ReqBodyToString(req *http.Request) string {
+	if req.Body == nil {
+		return ""
+	}
+
+	reqBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		return ""
+	}
+
+	// should be re-assign into body
+	req.Body = io.NopCloser(bytes.NewReader(reqBody))
+
+	return string(reqBody)
 }
 
 // Decode to struct
@@ -113,4 +145,12 @@ func DecodeToStruct[T any](input any) (T, error) {
 	}
 
 	return result, nil
+}
+
+// Get RequestID from context
+func GetRequestID(ctx context.Context) string {
+	if val, ok := ctx.Value(requestIDKey).(string); ok {
+		return val
+	}
+	return ""
 }

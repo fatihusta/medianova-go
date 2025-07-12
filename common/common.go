@@ -34,3 +34,9 @@ func (r *Result[T]) JSON() JSONResult {
 	}
 	return JSONResult(b)
 }
+
+type CtxKey string
+
+func (k CtxKey) String() string {
+	return string(k)
+}
