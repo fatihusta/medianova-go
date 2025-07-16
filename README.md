@@ -37,7 +37,6 @@ func main() {
 	middlewares := client.WithMiddlewares(
 		client.RetryMiddleware(3, 2*time.Second),
 		client.AuthWithOrganizationToken(organizationToken),
-		client.LoggingMiddleware(),
 	)
 	mn := client.NewClient(reqConfig, middlewares)
 
