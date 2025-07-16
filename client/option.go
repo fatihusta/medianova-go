@@ -1,7 +1,10 @@
 package client
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"time"
@@ -29,26 +32,51 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 
 			var resp *http.Response
 			var err error
+			var _body []byte
+			if req.Body != nil {
+				_body = utils.ReqBodyToByte(req)
+			}
 
-			for i := 1; i <= retries; i++ {
-				resp, err = next.RoundTrip(req)
-				if err == nil {
+			parentCtx := req.Context()
+			for attempt := 1; attempt <= retries; attempt++ {
+				ctx, cancel := context.WithTimeout(parentCtx, delay)
+				_req := req.Clone(context.WithValue(ctx, utils.GetRequestIDKey(), utils.GetRequestID(parentCtx)))
+				if _body != nil {
+					_req.Body = io.NopCloser(bytes.NewReader(_body))
+				}
+
+				resp, err = next.RoundTrip(_req)
+				cancel()
+
+				if err == nil && resp.StatusCode < http.StatusInternalServerError {
 					return resp, nil
 				}
+
 				statusCode := 0
 				if resp != nil {
 					statusCode = resp.StatusCode
 				}
+
 				slog.Error(err.Error(),
-					slog.String("request_id", utils.GetRequestID(req.Context())),
+					slog.String("request_id", utils.GetRequestID(_req.Context())),
 					slog.Int("status", statusCode),
-					slog.String("method", req.Method),
-					slog.String("scheme", req.URL.Scheme),
-					slog.String("host", req.URL.Host),
-					slog.String("path", req.URL.Path),
-					slog.String("Retrying", fmt.Sprintf("%d/%d", i, retries)),
+					slog.String("method", _req.Method),
+					slog.String("url", _req.URL.String()),
+					slog.String("Retrying", fmt.Sprintf("%d/%d", attempt, retries)),
 				)
-				time.Sleep(delay)
+
+				if resp != nil && resp.Body != nil {
+					resp.Body.Close()
+				}
+
+				if parentCtx.Err() != nil {
+					slog.Warn("Parent context canceled or deadline exceeded",
+						slog.String("error", parentCtx.Err().Error()),
+					)
+					break
+				}
+				// basic backoff
+				time.Sleep(time.Second * time.Duration(attempt))
 			}
 			return resp, err
 		})
@@ -62,17 +90,27 @@ func LoggingMiddleware() Middleware {
 
 			slog.Debug("Starting request",
 				slog.String("request_id", utils.GetRequestID(req.Context())),
-				slog.String("url", req.URL.String()))
+				slog.String("method", req.Method),
+				slog.String("url", req.URL.String()),
+				slog.String("body", utils.ReqBodyToString(req)))
 
+			_err := ""
 			resp, err := next.RoundTrip(req)
+			if err != nil {
+				_err = err.Error()
+			}
+
+			statusCode := 0
+			if resp != nil {
+				statusCode = resp.StatusCode
+			}
 
 			slog.Debug("Complated request",
 				slog.String("request_id", utils.GetRequestID(req.Context())),
-				slog.Int("status", resp.StatusCode),
+				slog.Int("status", statusCode),
 				slog.String("method", req.Method),
-				slog.String("scheme", req.URL.Scheme),
-				slog.String("host", req.URL.Host),
-				slog.String("path", req.URL.Path),
+				slog.String("url", req.URL.String()),
+				slog.String("error", _err),
 			)
 
 			return resp, err
