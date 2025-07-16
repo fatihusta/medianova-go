@@ -23,10 +23,6 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 	reqID := uuid.New().String()
 	req = req.WithContext(context.WithValue(req.Context(), requestIDKey, reqID))
 
-	slog.Debug("request",
-		slog.String(requestIDKey.String(), reqID),
-		slog.String("body", ReqBodyToString(req)))
-
 	resp, err := c.Do(req)
 	if err != nil {
 		errTempl := fmt.Sprintf("%s: %s, method: %s, url: %s",
@@ -112,18 +108,27 @@ func ToStringBody(resp *http.Response) (string, error) {
 	return string(respBody), nil
 }
 
-func ReqBodyToString(req *http.Request) string {
+func ReqBodyToByte(req *http.Request) []byte {
 	if req.Body == nil {
-		return ""
+		return []byte{}
 	}
 
 	reqBody, err := io.ReadAll(req.Body)
 	if err != nil {
-		return ""
+		return []byte{}
 	}
 
 	// should be re-assign into body
 	req.Body = io.NopCloser(bytes.NewReader(reqBody))
+
+	return reqBody
+}
+
+func ReqBodyToString(req *http.Request) string {
+	reqBody := ReqBodyToByte(req)
+	if reqBody != nil {
+		return ""
+	}
 
 	return string(reqBody)
 }
@@ -153,4 +158,9 @@ func GetRequestID(ctx context.Context) string {
 		return val
 	}
 	return ""
+}
+
+// Get RequestID from context
+func GetRequestIDKey() common.CtxKey {
+	return requestIDKey
 }
