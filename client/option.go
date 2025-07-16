@@ -83,41 +83,6 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 	}
 }
 
-func LoggingMiddleware() Middleware {
-
-	return func(next http.RoundTripper) http.RoundTripper {
-		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {
-
-			slog.Debug("Starting request",
-				slog.String("request_id", utils.GetRequestID(req.Context())),
-				slog.String("method", req.Method),
-				slog.String("url", req.URL.String()),
-				slog.String("body", utils.ReqBodyToString(req)))
-
-			_err := ""
-			resp, err := next.RoundTrip(req)
-			if err != nil {
-				_err = err.Error()
-			}
-
-			statusCode := 0
-			if resp != nil {
-				statusCode = resp.StatusCode
-			}
-
-			slog.Debug("Complated request",
-				slog.String("request_id", utils.GetRequestID(req.Context())),
-				slog.Int("status", statusCode),
-				slog.String("method", req.Method),
-				slog.String("url", req.URL.String()),
-				slog.String("error", _err),
-			)
-
-			return resp, err
-		})
-	}
-}
-
 func SetHeaderMiddleware(key, value string) Middleware {
 	return func(next http.RoundTripper) http.RoundTripper {
 		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {

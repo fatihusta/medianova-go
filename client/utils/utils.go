@@ -23,6 +23,25 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 	reqID := uuid.New().String()
 	req = req.WithContext(context.WithValue(req.Context(), requestIDKey, reqID))
 
+	if slog.Default().Enabled(context.Background(), slog.LevelDebug) ||
+		slog.Default().Enabled(context.Background(), slog.LevelInfo) {
+
+		attrs := []slog.Attr{
+			slog.String("request_id", reqID),
+			slog.String("method", req.Method),
+			slog.String("url", req.URL.String()),
+		}
+
+		logLevel := slog.LevelInfo
+
+		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
+			logLevel = slog.LevelDebug
+			attrs = append(attrs, slog.String("body", ReqBodyToString(req)))
+		}
+
+		slog.LogAttrs(context.Background(), logLevel, "starting request", attrs...)
+	}
+
 	resp, err := c.Do(req)
 	if err != nil {
 		errTempl := fmt.Sprintf("%s: %s, method: %s, url: %s",
@@ -81,7 +100,25 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	result.Headers = resp.Header
 
-	slog.Debug("response", slog.String(requestIDKey.String(), reqID), slog.String("body", string(respBody)))
+	if slog.Default().Enabled(context.Background(), slog.LevelDebug) ||
+		slog.Default().Enabled(context.Background(), slog.LevelInfo) {
+
+		attrs := []slog.Attr{
+			slog.String(requestIDKey.String(), reqID),
+			slog.Int("status", result.Status),
+			slog.String("method", resp.Request.Method),
+			slog.String("url", resp.Request.URL.String()),
+		}
+
+		logLevel := slog.LevelInfo
+
+		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
+			logLevel = slog.LevelDebug
+			attrs = append(attrs, slog.String("body", string(respBody)))
+		}
+
+		slog.LogAttrs(context.Background(), logLevel, "complated request", attrs...)
+	}
 
 	return result
 }
@@ -126,7 +163,7 @@ func ReqBodyToByte(req *http.Request) []byte {
 
 func ReqBodyToString(req *http.Request) string {
 	reqBody := ReqBodyToByte(req)
-	if reqBody != nil {
+	if reqBody == nil {
 		return ""
 	}
 
