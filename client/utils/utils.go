@@ -29,7 +29,7 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 			requestIDKey,
 			reqID,
 			req.Method,
-			req.URL.Scheme+"://"+req.URL.Host+req.URL.Path)
+			req.URL.String())
 		result := common.NewResult[T]()
 		result.Error = fmt.Errorf("%s, %s", err.Error(), errTempl)
 		return result
@@ -49,7 +49,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 		requestIDKey,
 		reqID,
 		resp.Request.Method,
-		resp.Request.URL.Scheme+"://"+resp.Request.URL.Host+resp.Request.URL.Path)
+		resp.Request.URL.String())
 
 	if resp.StatusCode != http.StatusOK {
 		errMsg, err := ToStringBody(resp)
