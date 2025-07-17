@@ -30,6 +30,10 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 
 		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {
 
+			if retries < 1 { // Disabled
+				return next.RoundTrip(req)
+			}
+
 			var resp *http.Response
 			var err error
 			var _body []byte
@@ -38,7 +42,14 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 			}
 
 			parentCtx := req.Context()
+
 			for attempt := 1; attempt <= retries; attempt++ {
+
+				if parentCtx.Err() != nil {
+					slog.Warn("Parent context canceled or deadline exceeded")
+					return nil, parentCtx.Err()
+				}
+
 				ctx, cancel := context.WithTimeout(parentCtx, delay)
 				_req := req.Clone(context.WithValue(ctx, utils.GetRequestIDKey(), utils.GetRequestID(parentCtx)))
 				if _body != nil {
@@ -69,12 +80,6 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					resp.Body.Close()
 				}
 
-				if parentCtx.Err() != nil {
-					slog.Warn("Parent context canceled or deadline exceeded",
-						slog.String("error", parentCtx.Err().Error()),
-					)
-					break
-				}
 				// basic backoff
 				time.Sleep(time.Second * time.Duration(attempt))
 			}
