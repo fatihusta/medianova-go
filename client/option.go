@@ -68,7 +68,8 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					statusCode = resp.StatusCode
 				}
 
-				slog.Error(err.Error(),
+				slog.Error("error",
+					slog.String("reason", fmt.Sprintf("%v", err.Error())),
 					slog.String("request_id", utils.GetRequestID(_req.Context())),
 					slog.Int("status", statusCode),
 					slog.String("method", _req.Method),
