@@ -69,7 +69,7 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 				}
 
 				slog.Error("error",
-					slog.String("reason", fmt.Sprintf("%v", err.Error())),
+					slog.String("reason", fmt.Sprintf("%v", err)),
 					slog.String("request_id", utils.GetRequestID(_req.Context())),
 					slog.Int("status", statusCode),
 					slog.String("method", _req.Method),
