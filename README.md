@@ -78,6 +78,7 @@ func main() {
 - CDN > Purge > status
 - CDN > Prefetch > prefetch
 - CDN > Prefetch > status
+- CDN > SSL > list
 - Organization > list
 - Organization > show
 - Organization > users
