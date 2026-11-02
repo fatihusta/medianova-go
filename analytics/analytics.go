@@ -5,6 +5,7 @@ import (
 	"github.com/fatihusta/medianova-go/analytics/errorreport"
 	"github.com/fatihusta/medianova-go/analytics/overview"
 	"github.com/fatihusta/medianova-go/analytics/requestreport"
+	analyticsresource "github.com/fatihusta/medianova-go/analytics/resource"
 	"github.com/fatihusta/medianova-go/analytics/statusreport"
 	"github.com/fatihusta/medianova-go/analytics/trafficreport"
 	"github.com/fatihusta/medianova-go/client/request"
@@ -22,6 +23,7 @@ type Analytics struct {
 	RequestsReportDetail   *requestreport.RequestsReportDetailService
 	ErrorLogsStatusCodes   *errorlogs.ErrorLogsStatusCodesService
 	ErrorReportStatusCodes *errorreport.ErrorReportStatusCodesService
+	ResourceAnalytics      *analyticsresource.ResourceService
 }
 
 func NewAnalytics(reqCfg *request.RequestConfig) *Analytics {
@@ -37,5 +39,6 @@ func NewAnalytics(reqCfg *request.RequestConfig) *Analytics {
 		RequestsReportDetail:   requestreport.NewRequestsReportDetailService(reqCfg),
 		ErrorLogsStatusCodes:   errorlogs.NewErrorLogsStatusCodesService(reqCfg),
 		ErrorReportStatusCodes: errorreport.NewErrorReportStatusCodesService(reqCfg),
+		ResourceAnalytics:      analyticsresource.NewResourceService(reqCfg),
 	}
 }

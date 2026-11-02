@@ -14,13 +14,16 @@ const (
 type RequestConfig struct {
 	httpClient     *http.Client
 	BaseURL        *url.URL
+	BaseURLV2      *url.URL
 	RequestTimeout time.Duration `yaml:"request_timeout,omitempty"`
 }
 
 func NewRequestConfig() *RequestConfig {
 	base_url, _ := url.Parse(CloudAPIv1)
+	base_url_v2, _ := url.Parse(CloudAPIv2)
 	return &RequestConfig{
 		BaseURL:        base_url,
+		BaseURLV2:      base_url_v2,
 		RequestTimeout: 5 * time.Second,
 		httpClient:     &http.Client{},
 	}
