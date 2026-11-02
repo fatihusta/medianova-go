@@ -15,25 +15,31 @@ import (
 
 const dateLayout = "2006-01-02 15:04:05"
 
-func newHTTPClient(token string) *client.Client {
+func newHTTPClient(auth client.Middleware) *client.Client {
 	reqConfig := request.NewRequestConfig()
 	reqConfig.RequestTimeout = 30 * time.Second
 
 	middlewares := client.WithMiddlewares(
-		client.RetryMiddleware(2, 5*time.Second),
-		client.AuthWithOrganizationToken(token),
+		// the stook analytics backend is intermittently slow to resolve
+		// organization buckets (HTTP 500); retry a few times
+		client.RetryMiddleware(4, 3*time.Second),
+		auth,
 	)
 
 	return client.NewClient(reqConfig, middlewares)
 }
 
-func newPlainClient(token string) *client.Client {
-	reqConfig := request.NewRequestConfig()
-	reqConfig.RequestTimeout = 30 * time.Second
-
-	return client.NewClient(reqConfig, client.WithMiddlewares(
-		client.AuthWithOrganizationToken(token),
-	))
+// stookAuth prefers the dashboard session token: the stook analytics
+// endpoints currently answer HTTP 500 "Failed to fetch organization buckets"
+// for organization API tokens and HTTP 200 for session JWTs.
+func stookAuth() (client.Middleware, bool) {
+	if session := os.Getenv("MEDIANOVA_SESSION_TOKEN"); session != "" {
+		return client.AuthWithBearer(session), true
+	}
+	if org := os.Getenv("MEDIANOVA_ORG_TOKEN"); org != "" {
+		return client.AuthWithOrganizationToken(org), true
+	}
+	return nil, false
 }
 
 type testEnv struct {
@@ -51,19 +57,19 @@ var (
 )
 
 // newTestEnv resolves the organization and probes once whether the stook
-// analytics routes are available for the token. Organizations without the
-// Stook product get HTTP 500 "Failed to fetch organization buckets";
-// those tests are skipped.
+// analytics routes answer for the configured token. Tests are skipped when
+// the probe keeps failing (organization API tokens currently get HTTP 500
+// "Failed to fetch organization buckets"; dashboard session JWTs work).
 func newTestEnv(t *testing.T) testEnv {
 	t.Helper()
 
-	token := os.Getenv("MEDIANOVA_ORG_TOKEN")
-	if token == "" {
-		t.Skip("MEDIANOVA_ORG_TOKEN is not set, skipping live API test")
+	auth, ok := stookAuth()
+	if !ok {
+		t.Skip("MEDIANOVA_SESSION_TOKEN or MEDIANOVA_ORG_TOKEN is not set, skipping live API test")
 	}
 
 	resolveOnce.Do(func() {
-		mn := newHTTPClient(token)
+		mn := newHTTPClient(auth)
 
 		env := testEnv{}
 		from := time.Now().Add(-26 * time.Hour).Truncate(time.Hour)
@@ -80,14 +86,14 @@ func newTestEnv(t *testing.T) testEnv {
 		}
 
 		env.stook = mn.Analytics.Stook
-		probe := newPlainClient(token).Analytics.Stook.GetFilters(context.Background(), env.request())
+		probe := newHTTPClient(auth).Analytics.Stook.GetFilters(context.Background(), env.request())
 		env.available = probe.Error == nil && probe.Status == 200
 		env.unavailAt = probe.Status
 		resolvedEnv = env
 	})
 
 	env := resolvedEnv
-	env.stook = newHTTPClient(token).Analytics.Stook
+	env.stook = newHTTPClient(auth).Analytics.Stook
 	if !env.available {
 		t.Skipf("stook analytics is not available for this organization (probe HTTP %d), skipping live API test", env.unavailAt)
 	}
@@ -140,8 +146,10 @@ func TestOverview(t *testing.T) {
 	if !result.Body.Status {
 		t.Fatalf("expected body status true, got: %s", result.JSON().String())
 	}
-	t.Logf("overview total_requests=%s (%s %s)", result.Body.Payload.TotalRequests.Value.String(),
-		result.Body.Payload.TotalRequests.Formatted, result.Body.Payload.TotalRequests.Unit)
+	t.Logf("overview requests=%s (%s) success=%s stored=%s download=%s (%s %s)",
+		result.Body.Payload.TotalRequests.String(), result.Body.Payload.TotalRequestsFormatted,
+		result.Body.Payload.SuccessRateFormatted, result.Body.Payload.TotalStoredDataFormatted,
+		result.Body.Payload.Download.Value.String(), result.Body.Payload.Download.Formatted, result.Body.Payload.Download.Unit)
 }
 
 func TestRequestHistogram(t *testing.T) {
@@ -153,7 +161,8 @@ func TestRequestHistogram(t *testing.T) {
 	if !result.Body.Status {
 		t.Fatalf("expected body status true, got: %s", result.JSON().String())
 	}
-	t.Logf("request_histogram interval=%s series=%d", result.Body.Payload.Interval, len(result.Body.Payload.Series))
+	t.Logf("request_histogram interval=%s total=%d points=%d", result.Body.Payload.Interval,
+		result.Body.Payload.TotalRequests, len(result.Body.Payload.Data))
 }
 
 func TestErrorRatioHistogram(t *testing.T) {
@@ -241,6 +250,6 @@ func TestRawLogs(t *testing.T) {
 	if !result.Body.Status {
 		t.Fatalf("expected body status true, got: %s", result.JSON().String())
 	}
-	t.Logf("raw_logs total=%d page=%d/%d logs=%d", result.Body.Payload.Pagination.Total,
-		result.Body.Payload.Pagination.Page, result.Body.Payload.Pagination.TotalPages, len(result.Body.Payload.Logs))
+	t.Logf("raw_logs total=%d page=%d/%d logs=%d", result.Body.Payload.TotalCount,
+		result.Body.Payload.CurrentPage, result.Body.Payload.TotalPage, len(result.Body.Payload.Logs))
 }

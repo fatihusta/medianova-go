@@ -30,14 +30,23 @@ type OverviewResponse struct {
 	Payload     OverviewData `json:"data"`
 }
 
+// OverviewData holds flat metric values with preformatted display strings,
+// plus nested download/upload values whose unit depends on the request metric.
 type OverviewData struct {
-	TotalRequests   MetricValue `json:"total_requests"`
-	SuccessRate     MetricValue `json:"success_rate"`
-	FailureRate     MetricValue `json:"failure_rate"`
-	AvgResponseTime MetricValue `json:"avg_response_time"`
-	TotalBytes      MetricValue `json:"total_bytes"`
-	Download        MetricValue `json:"download"`
-	Upload          MetricValue `json:"upload"`
+	TotalRequests            common.Number `json:"total_requests"`
+	TotalRequestsFormatted   string        `json:"total_requests_formatted"`
+	SuccessRate              common.Number `json:"success_rate"`
+	SuccessRateFormatted     string        `json:"success_rate_formatted"`
+	FailureRate              common.Number `json:"failure_rate"`
+	FailureRateFormatted     string        `json:"failure_rate_formatted"`
+	AvgResponseTimeNS        common.Number `json:"avg_response_time_ns"`
+	AvgResponseTimeFormatted string        `json:"avg_response_time_formatted"`
+	TotalBytes               common.Number `json:"total_bytes"`
+	TotalBytesFormatted      string        `json:"total_bytes_formatted"`
+	TotalStoredData          common.Number `json:"total_stored_data"`
+	TotalStoredDataFormatted string        `json:"total_stored_data_formatted"`
+	Download                 MetricValue   `json:"download"`
+	Upload                   MetricValue   `json:"upload"`
 }
 
 // FiltersResponse struct for the filters endpoint. The payload describes the
@@ -70,10 +79,15 @@ type RequestHistogramResponse struct {
 }
 
 type RequestHistogramData struct {
-	Interval string        `json:"interval"`
-	Metric   string        `json:"metric"`
-	Unit     string        `json:"metric_unit"`
-	Series   []ChartSeries `json:"series"`
+	Interval      string                  `json:"interval"`
+	TotalRequests int64                   `json:"total_requests"`
+	Data          []RequestHistogramPoint `json:"data"`
+}
+
+type RequestHistogramPoint struct {
+	Timestamp    int64  `json:"timestamp"`
+	Datetime     string `json:"datetime"`
+	RequestCount int64  `json:"request_count"`
 }
 
 // ErrorRatioHistogramResponse struct for the error_ratio_histogram endpoint.
@@ -161,28 +175,34 @@ type RawLogsResponse struct {
 }
 
 type RawLogsData struct {
-	Logs       []RawLog    `json:"logs"`
-	Pagination RawLogsPage `json:"pagination"`
+	Logs        []RawLog `json:"data"`
+	CurrentPage int      `json:"current_page"`
+	TotalPage   int      `json:"total_page"`
+	TotalCount  int64    `json:"total_count"`
 }
 
 type RawLog struct {
-	Timestamp     int64         `json:"ts"`
-	Bucket        string        `json:"bucket"`
-	APIName       string        `json:"api_name"`
-	StatusCode    int           `json:"status_code"`
-	Object        string        `json:"object"`
-	RemoteIP      string        `json:"remote_ip"`
-	RequestHost   string        `json:"request_host"`
-	ClientCountry string        `json:"client_country_code"`
-	ClientASN     string        `json:"client_asn"`
-	ClientISP     string        `json:"client_isp"`
-	BytesSent     int64         `json:"bytes_sent"`
-	RequestTime   common.Number `json:"request_time"`
-}
-
-type RawLogsPage struct {
-	Total      int64 `json:"total"`
-	Page       int   `json:"page"`
-	Limit      int   `json:"limit"`
-	TotalPages int   `json:"total_pages"`
+	Timestamp         string  `json:"ts"`
+	Version           *string `json:"version"`
+	DeploymentID      *string `json:"deploymentid"`
+	Event             *string `json:"event"`
+	Trigger           *string `json:"trigger"`
+	APIName           string  `json:"api_name"`
+	Bucket            string  `json:"bucket"`
+	Object            string  `json:"object"`
+	Status            *string `json:"status"`
+	StatusCode        int     `json:"status_code"`
+	RxBytes           int64   `json:"rx_bytes"`
+	TxBytes           int64   `json:"tx_bytes"`
+	TtrNS             int64   `json:"ttr_ns"`
+	RequestID         string  `json:"request_id"`
+	RequestPath       string  `json:"request_path"`
+	RequestHost       *string `json:"request_host"`
+	UserAgent         string  `json:"user_agent"`
+	RequestHeader     *string `json:"request_header"`
+	ResponseHeader    *string `json:"response_header"`
+	Tags              *string `json:"tags"`
+	ClientCountryCode string  `json:"client_country_code"`
+	ClientASN         string  `json:"client_asn"`
+	ClientISP         string  `json:"client_isp"`
 }
