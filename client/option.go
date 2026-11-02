@@ -25,6 +25,19 @@ func AuthWithOrganizationToken(organizationToken string) Middleware {
 	}
 }
 
+// AuthWithBearer sets the Authorization header with a bearer token. The
+// stook analytics endpoints currently only answer for dashboard session JWTs;
+// organization API tokens get HTTP 500 "Failed to fetch organization buckets".
+func AuthWithBearer(token string) Middleware {
+	return func(next http.RoundTripper) http.RoundTripper {
+
+		return MiddlewareFunc(func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("Authorization", "Bearer "+token)
+			return next.RoundTrip(req)
+		})
+	}
+}
+
 func RetryMiddleware(retries int, delay time.Duration) Middleware {
 
 	return func(next http.RoundTripper) http.RoundTripper {
