@@ -8,12 +8,14 @@ import (
 	"github.com/fatihusta/medianova-go/cdn"
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/organization"
+	"github.com/fatihusta/medianova-go/stook"
 )
 
 type Client struct {
 	Analytics    *analytics.Analytics
 	CDN          *cdn.CDN
 	Organization *organization.OrganizationService
+	Stook        *stook.StookService
 }
 
 func NewClient(cfg *request.RequestConfig, middleware http.RoundTripper) *Client {
@@ -33,5 +35,6 @@ func NewClient(cfg *request.RequestConfig, middleware http.RoundTripper) *Client
 		Analytics:    analytics.NewAnalytics(cfg),
 		CDN:          cdn.NewCDN(cfg),
 		Organization: organization.NewOrganizationService(cfg),
+		Stook:        stook.NewStookService(cfg),
 	}
 }
