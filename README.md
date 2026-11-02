@@ -60,6 +60,37 @@ func main() {
 
 > Please contact to your Medianova Solution Engineer to obtain your Organization Token.
 
+# Live integration tests
+
+The integration tests send real requests to the Medianova Cloud API and verify the responses.
+They live next to the packages they cover and read their configuration from environment variables.
+Tests that require credentials are skipped automatically when `MEDIANOVA_ORG_TOKEN` is not set,
+so plain `go test ./...` stays safe to run without a Medianova account.
+
+Copy `.env.example` to `.env`, replace the dummy values with your own and load it:
+
+```bash
+cp .env.example .env
+# edit .env with your real values, then:
+source .env
+
+go test ./... -v          # run all tests
+go test ./analytics/resource/ -v   # run a single package
+```
+
+| Variable | Required | Used by | Fallback |
+|---|---|---|---|
+| `MEDIANOVA_ORG_TOKEN` | yes | all live tests | none, tests are skipped when it is not set |
+| `MEDIANOVA_ORG_UUID` | no | all live tests | first organization of the token |
+| `MEDIANOVA_RESOURCE_CDN_URL` | no | tests that need a CDN resource | first resource (`cdn_url`) of the organization |
+| `MEDIANOVA_ANALYTICS_FROM` | no | analytics tests | one hour window from yesterday |
+| `MEDIANOVA_ANALYTICS_TO` | no | analytics tests | one hour window from yesterday |
+
+Notes:
+- The API only accepts `"YYYY-MM-DD HH:MM:SS"` date format.
+- Granular graph data is not retained for older dates, keep the default recent window unless you need a specific range.
+- Never commit `.env`, it is already in `.gitignore`.
+
 # Supported API endpoints
 - Analytics > Overview > historical
 - Analytics > Overview > top resources
@@ -67,6 +98,18 @@ func main() {
 - Analytics > Overview > visitor countries
 - Analytics > Overview > active hit traffic
 - Analytics > Overview > region
+- Analytics > Resource > historical (hit, hit_ratio, traffic, gpu_transaction, bandwidth, requests)
+- Analytics > Resource > traffic / request / bandwidth report graphs
+- Analytics > Resource > cache / non-cache report graphs
+- Analytics > Resource > cache / non-cache traffic report graphs
+- Analytics > Resource > status report graphs (2xx, 3xx, 4xx, 5xx)
+- Analytics > Resource > errors
+- Analytics > Resource > visitors countries
+- Analytics > Resource > status
+- Analytics > Resource > region
+- Analytics > Resource > active traffic / active hit
+- Analytics > Resource > traffic detail
+- Analytics > Resource > request detail
 - Analytics > ErrorLogs > StatusCodes
 - Analytics > ErrorReport > StatusCodes
 - Analytics > RequestReport > detail

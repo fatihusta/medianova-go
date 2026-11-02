@@ -10,7 +10,7 @@ import (
 )
 
 func (s *OrganizationService) Show(organizationUUID string) *common.Result[OrganizationDetailsResponse] {
-	url := *s.request.BaseURL
+	url := *s.request.BaseURLV2
 	url.Path = path.Join(url.Path, "organizations", organizationUUID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)

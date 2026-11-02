@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -57,11 +58,22 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 				}
 
 				resp, err = next.RoundTrip(_req)
-				cancel()
+				if err != nil {
+					cancel()
+				}
 
 				if err == nil && resp.StatusCode < http.StatusInternalServerError {
+					// keep the attempt context alive until the body is fully read,
+					// cancelling it here would abort the in-flight body stream
+					if resp.Body != nil {
+						resp.Body = &contextCancelingReadCloser{ReadCloser: resp.Body, cancel: cancel}
+					} else {
+						cancel()
+					}
 					return resp, nil
 				}
+
+				cancel()
 
 				statusCode := 0
 				if resp != nil {
@@ -87,6 +99,17 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 			return resp, err
 		})
 	}
+}
+
+type contextCancelingReadCloser struct {
+	io.ReadCloser
+	once   sync.Once
+	cancel context.CancelFunc
+}
+
+func (c *contextCancelingReadCloser) Close() error {
+	defer c.once.Do(c.cancel)
+	return c.ReadCloser.Close()
 }
 
 func SetHeaderMiddleware(key, value string) Middleware {

@@ -15,7 +15,7 @@ func (s *OrganizationService) List() *common.Result[[]OrganizationListData] {
 
 	result := common.NewResult[[]OrganizationListData]()
 
-	url := *s.request.BaseURL
+	url := *s.request.BaseURLV2
 	url.Path = path.Join(url.Path, "organizations")
 	q := url.Query()
 	q.Set("page", "1")
