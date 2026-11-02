@@ -1,11 +1,14 @@
 package overview
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 type ActiveHitTrafficRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Interval         string   `json:"interval,omitempty"`
-	Resources        []string `json:"resources"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Interval         string    `json:"interval,omitempty"`
+	Resources        []string  `json:"resources"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type ActiveHitTrafficResponse struct {

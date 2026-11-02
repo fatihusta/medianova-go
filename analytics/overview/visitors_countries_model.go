@@ -1,12 +1,15 @@
 package overview
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 type VisitorsCountriesRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Limit            int      `json:"limit,omitempty"`
-	Page             int      `json:"page,omitempty"`
-	Resources        []string `json:"resources"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Limit            int       `json:"limit,omitempty"`
+	Page             int       `json:"page,omitempty"`
+	Resources        []string  `json:"resources"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type VisitorsCountriesResponse struct {

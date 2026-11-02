@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"path"
 
+	"github.com/fatihusta/medianova-go/analytics/tier"
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
 	"github.com/fatihusta/medianova-go/common"
@@ -20,6 +21,11 @@ func NewResourceService(reqCfg *request.RequestConfig) *ResourceService {
 
 func doPost[T any](reqCfg *request.RequestConfig, ctx context.Context, reportRequest any, elem ...string) *common.Result[T] {
 	result := common.NewResult[T]()
+
+	if tv, ok := reportRequest.(interface{ tierValue() tier.Tier }); ok && !tv.tierValue().Valid() {
+		result.Error = tv.tierValue().ValidationError()
+		return result
+	}
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {

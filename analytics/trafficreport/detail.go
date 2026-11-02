@@ -21,6 +21,12 @@ func NewTrafficReportDetailService(reqCfg *request.RequestConfig) *TrafficReport
 func (s *TrafficReportDetailService) Get(ctx context.Context, reportRequest TrafficReportDetailRequest) *common.Result[TrafficReportDetailResponse] {
 
 	result := common.NewResult[TrafficReportDetailResponse]()
+
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

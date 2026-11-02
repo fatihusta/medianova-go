@@ -22,6 +22,11 @@ func (s *TopResourcesService) Get(ctx context.Context, reportRequest TopResource
 
 	result := common.NewResult[TopResourcesResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

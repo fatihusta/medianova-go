@@ -21,6 +21,12 @@ func NewErrorsService(reqCfg *request.RequestConfig) *ErrorsService {
 func (s *ErrorsService) Get(ctx context.Context, reportRequest ErrorsRequest) *common.Result[ErrorsResponse] {
 
 	result := common.NewResult[ErrorsResponse]()
+
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

@@ -22,6 +22,11 @@ func (s *RegionService) Get(ctx context.Context, reportRequest RegionRequest) *c
 
 	result := common.NewResult[RegionResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

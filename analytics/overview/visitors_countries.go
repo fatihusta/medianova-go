@@ -22,6 +22,11 @@ func (s *VisitorsCountriesService) Get(ctx context.Context, reportRequest Visito
 
 	result := common.NewResult[VisitorsCountriesResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

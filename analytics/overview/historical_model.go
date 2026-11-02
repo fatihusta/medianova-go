@@ -1,5 +1,7 @@
 package overview
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 // StatType enum
 type StatType string
 
@@ -16,11 +18,12 @@ type StatType string
 //	    "calc_type": "request_number"
 //	}
 type HistoricalReportRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	Type             StatType `json:"type"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Resources        []string `json:"resources"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	Type             StatType  `json:"type"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Resources        []string  `json:"resources"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 // HistoricalReportResponse struct

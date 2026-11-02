@@ -33,6 +33,11 @@ func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveTyp
 
 	result := common.NewResult[ActiveHitTrafficResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

@@ -3,15 +3,18 @@ package overview
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/fatihusta/medianova-go/analytics/tier"
 )
 
 type TopResourcesRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	Resources        []string `json:"resources"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Limit            int      `json:"limit,omitempty"`
-	Page             int      `json:"page,omitempty"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	Resources        []string  `json:"resources"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Limit            int       `json:"limit,omitempty"`
+	Page             int       `json:"page,omitempty"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type TopResourcesResponse struct {
