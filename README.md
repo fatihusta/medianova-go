@@ -133,6 +133,14 @@ Invalid values are rejected client side before any HTTP request is sent.
 - Analytics > Resource > active traffic / active hit
 - Analytics > Resource > traffic detail
 - Analytics > Resource > request detail
+- Analytics > Stook > overview
+- Analytics > Stook > filters
+- Analytics > Stook > request histogram
+- Analytics > Stook > error ratio histogram
+- Analytics > Stook > charts (metric, per_bucket, per_endpoint, per_method, per_country)
+- Analytics > Stook > bucket details
+- Analytics > Stook > failure rate per bucket
+- Analytics > Stook > raw logs
 - Analytics > ErrorLogs > StatusCodes
 - Analytics > ErrorReport > StatusCodes
 - Analytics > RequestReport > detail
