@@ -9,6 +9,7 @@ import (
 	"time"
 
 	mnresource "github.com/fatihusta/medianova-go/analytics/resource"
+	"github.com/fatihusta/medianova-go/analytics/tier"
 	"github.com/fatihusta/medianova-go/client"
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/common"
@@ -575,4 +576,38 @@ func TestRequestDetail(t *testing.T) {
 		t.Fatalf("expected non-zero hits or misses, got: %s", result.JSON().String())
 	}
 	t.Logf("request_detail overall: %+v", result.Body.Payload.Overall)
+}
+
+func TestTierEdgeVsAll(t *testing.T) {
+	env := newTestEnv(t)
+
+	edgeRequest := env.histogramRequest()
+	edgeRequest.Tier = tier.TierEdge
+	allRequest := env.histogramRequest()
+	allRequest.Tier = tier.TierAll
+
+	edge := env.mn.Analytics.ResourceAnalytics.GetStatusReport(withCtx(t), mnresource.Status2xx, edgeRequest)
+	requireOK(t, edge)
+	all := env.mn.Analytics.ResourceAnalytics.GetStatusReport(withCtx(t), mnresource.Status2xx, allRequest)
+	requireOK(t, all)
+
+	edgeSum := sumStatusHits(edge.Body.Payload.Overall)
+	allSum := sumStatusHits(all.Body.Payload.Overall)
+
+	if allSum < edgeSum {
+		t.Fatalf("expected tier all (%d) >= tier edge (%d)", allSum, edgeSum)
+	}
+	t.Logf("tier 2xx hit sums: edge=%d all=%d", edgeSum, allSum)
+}
+
+func sumStatusHits(overall map[string][]mnresource.StatusHistogramPoint) int64 {
+	var total int64
+	for _, series := range overall {
+		for _, point := range series {
+			if hit, err := point.Hit.Int64(); err == nil {
+				total += hit
+			}
+		}
+	}
+	return total
 }

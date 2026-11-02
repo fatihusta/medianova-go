@@ -33,6 +33,11 @@ func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, r
 
 	result := common.NewResult[StatusReportResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

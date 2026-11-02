@@ -1,10 +1,13 @@
 package overview
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 type RegionRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Resources        []string `json:"resources"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Resources        []string  `json:"resources"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type RegionResponse struct {

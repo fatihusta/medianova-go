@@ -35,6 +35,11 @@ func (s *HistoricalService) GetHit(ctx context.Context, reportRequest Historical
 		return result
 	}
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err
@@ -59,6 +64,11 @@ func (s *HistoricalService) GetHitRatio(ctx context.Context, reportRequest Histo
 
 	if reportRequest.Type != HitRatio {
 		result.Error = fmt.Errorf("type should be hit_ratio")
+		return result
+	}
+
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
 		return result
 	}
 
@@ -87,7 +97,11 @@ func (s *HistoricalService) GetTraffic(ctx context.Context, reportRequest Histor
 	if reportRequest.Type != Traffic {
 		result.Error = fmt.Errorf("type should be traffic")
 		return result
+	}
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
 	}
 
 	body, err := utils.ToJSONBodyBuffer(reportRequest)

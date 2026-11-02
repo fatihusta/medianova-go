@@ -22,6 +22,11 @@ func (s *RequestsReportDetailService) Get(ctx context.Context, reportRequest Req
 
 	result := common.NewResult[RequestsReportDetailResponse]()
 
+	if !reportRequest.Tier.Valid() {
+		result.Error = reportRequest.Tier.ValidationError()
+		return result
+	}
+
 	body, err := utils.ToJSONBodyBuffer(reportRequest)
 	if err != nil {
 		result.Error = err

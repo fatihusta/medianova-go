@@ -1,11 +1,14 @@
 package statusreport
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 type StatusReportRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Resources        []string `json:"resources"`
-	Interval         string   `json:"interval,omitempty"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Resources        []string  `json:"resources"`
+	Interval         string    `json:"interval,omitempty"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type StatusReportResponse struct {

@@ -91,6 +91,29 @@ Notes:
 - Granular graph data is not retained for older dates, keep the default recent window unless you need a specific range.
 - Never commit `.env`, it is already in `.gitignore`.
 
+# Tier filtering
+
+All analytics request structs (v1 overview/reports and v2 resource) accept an optional `Tier` field
+(`tier.TierEdge` or `tier.TierAll`, defined in `analytics/tier`):
+
+- `TierEdge`: counts only end-user (Edge) requests. It must be set explicitly, the API does not default to edge.
+- `TierAll`: counts requests across the Edge + Mid + Origin layers, the same request may be counted more than once.
+  It is the API default; leaving the field empty sends no tier and behaves as `all`.
+
+```go
+result := mn.Analytics.ResourceAnalytics.GetRequestReport(ctx, resource.ResourceHistogramRequest{
+	ResourceRequest: resource.ResourceRequest{
+		OrganizationUUID: organizationUUID,
+		From:             "2024-11-12 05:00:00",
+		To:               "2024-11-12 05:59:59",
+		Tier:             tier.TierAll,
+	},
+	Interval: "5m",
+})
+```
+
+Invalid values are rejected client side before any HTTP request is sent.
+
 # Supported API endpoints
 - Analytics > Overview > historical
 - Analytics > Overview > top resources

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/fatihusta/medianova-go/analytics/tier"
 )
 
 // StatType enum
@@ -71,11 +73,16 @@ func (n Number) Int64() (int64, error) {
 //	    "timezone": "Europe/Istanbul"
 //	}
 type ResourceRequest struct {
-	OrganizationUUID string   `json:"organization_uuid"`
-	Resources        []string `json:"resources,omitempty"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	Timezone         string   `json:"timezone,omitempty"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	Resources        []string  `json:"resources,omitempty"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	Timezone         string    `json:"timezone,omitempty"`
+	Tier             tier.Tier `json:"tier,omitempty"`
+}
+
+func (r ResourceRequest) tierValue() tier.Tier {
+	return r.Tier
 }
 
 // ResourceHistoricalRequest struct

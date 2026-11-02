@@ -1,12 +1,15 @@
 package errorlogs
 
+import "github.com/fatihusta/medianova-go/analytics/tier"
+
 type ErrorLogsStatusCodesRequest struct {
-	PageSize         int      `json:"page_size,omitempty"`
-	OrganizationUUID string   `json:"organization_uuid"`
-	From             string   `json:"from"`
-	To               string   `json:"to"`
-	StatusCodes      []int    `json:"statusCodes"`
-	Resources        []string `json:"resources,omitempty"`
+	PageSize         int       `json:"page_size,omitempty"`
+	OrganizationUUID string    `json:"organization_uuid"`
+	From             string    `json:"from"`
+	To               string    `json:"to"`
+	StatusCodes      []int     `json:"statusCodes"`
+	Resources        []string  `json:"resources,omitempty"`
+	Tier             tier.Tier `json:"tier,omitempty"`
 }
 
 type ErrorLogsStatusCodesResponse struct {
