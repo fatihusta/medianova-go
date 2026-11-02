@@ -156,3 +156,5 @@ Invalid values are rejected client side before any HTTP request is sent.
 - Organization > list
 - Organization > show
 - Organization > users
+- Stook > Bucket > list
+- Stook > Bucket > show
