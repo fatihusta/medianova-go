@@ -12,6 +12,7 @@ type TopResourcesRequest struct {
 	Resources        []string  `json:"resources"`
 	From             string    `json:"from"`
 	To               string    `json:"to"`
+	Timezone         string    `json:"timezone,omitempty"`
 	Limit            int       `json:"limit,omitempty"`
 	Page             int       `json:"page,omitempty"`
 	Tier             tier.Tier `json:"tier,omitempty"`

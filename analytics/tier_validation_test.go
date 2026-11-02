@@ -41,6 +41,15 @@ func TestV1InvalidTierRejectedClientSide(t *testing.T) {
 	check("overview.historical.GetTraffic", mnoverview.NewHistoricalService(reqCfg).GetTraffic(ctx, mnoverview.HistoricalReportRequest{
 		OrganizationUUID: org, Type: mnoverview.Traffic, From: from, To: to, Tier: badTier,
 	}).Error)
+	check("overview.historical.GetBandwidth", mnoverview.NewHistoricalService(reqCfg).GetBandwidth(ctx, mnoverview.HistoricalReportRequest{
+		OrganizationUUID: org, Type: mnoverview.Bandwidth, From: from, To: to, Tier: badTier,
+	}).Error)
+	check("overview.historical.GetRequests", mnoverview.NewHistoricalService(reqCfg).GetRequests(ctx, mnoverview.HistoricalReportRequest{
+		OrganizationUUID: org, Type: mnoverview.Requests, From: from, To: to, Tier: badTier,
+	}).Error)
+	check("overview.historical.GetGPUTransaction", mnoverview.NewHistoricalService(reqCfg).GetGPUTransaction(ctx, mnoverview.HistoricalReportRequest{
+		OrganizationUUID: org, Type: mnoverview.GPUTransaction, From: from, To: to, Tier: badTier,
+	}).Error)
 	check("overview.top_resources", mnoverview.NewTopResourcesService(reqCfg).Get(ctx, mnoverview.TopResourcesRequest{
 		OrganizationUUID: org, From: from, To: to, Tier: badTier,
 	}).Error)
@@ -71,4 +80,37 @@ func TestV1InvalidTierRejectedClientSide(t *testing.T) {
 	check("errorreport", mnerrorreport.NewErrorReportStatusCodesService(reqCfg).Get(ctx, mnerrorreport.ErrorReportStatusCodesRequest{
 		OrganizationUUID: org, From: from, To: to, Tier: badTier,
 	}).Error)
+}
+
+func TestV1InvalidCalcTypeRejectedClientSide(t *testing.T) {
+	svc := mnoverview.NewHistoricalService(request.NewRequestConfig())
+	ctx := context.Background()
+
+	cases := map[string]func() error{
+		"GetTraffic": func() error {
+			return svc.GetTraffic(ctx, mnoverview.HistoricalReportRequest{
+				OrganizationUUID: "00000000-0000-0000-0000-000000000000",
+				Type:             mnoverview.Traffic,
+				From:             "2024-11-12 05:00:00",
+				To:               "2024-11-12 05:59:59",
+				CalcType:         "bytes_received",
+			}).Error
+		},
+		"GetBandwidth": func() error {
+			return svc.GetBandwidth(ctx, mnoverview.HistoricalReportRequest{
+				OrganizationUUID: "00000000-0000-0000-0000-000000000000",
+				Type:             mnoverview.Bandwidth,
+				From:             "2024-11-12 05:00:00",
+				To:               "2024-11-12 05:59:59",
+				CalcType:         "bytes_received",
+			}).Error
+		},
+	}
+
+	for name, fn := range cases {
+		err := fn()
+		if err == nil || !strings.Contains(err.Error(), "calc_type") {
+			t.Errorf("%s: expected calc_type validation error, got: %v", name, err)
+		}
+	}
 }
