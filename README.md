@@ -115,7 +115,7 @@ result := mn.Analytics.ResourceAnalytics.GetRequestReport(ctx, resource.Resource
 Invalid values are rejected client side before any HTTP request is sent.
 
 # Supported API endpoints
-- Analytics > Overview > historical
+- Analytics > Overview > historical (hit, hit_ratio, traffic, gpu_transaction, bandwidth, requests)
 - Analytics > Overview > top resources
 - Analytics > Overview > errors
 - Analytics > Overview > visitor countries

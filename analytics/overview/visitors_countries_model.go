@@ -6,6 +6,7 @@ type VisitorsCountriesRequest struct {
 	OrganizationUUID string    `json:"organization_uuid"`
 	From             string    `json:"from"`
 	To               string    `json:"to"`
+	Timezone         string    `json:"timezone,omitempty"`
 	Limit            int       `json:"limit,omitempty"`
 	Page             int       `json:"page,omitempty"`
 	Resources        []string  `json:"resources"`

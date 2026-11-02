@@ -6,6 +6,7 @@ type StatusReportRequest struct {
 	OrganizationUUID string    `json:"organization_uuid"`
 	From             string    `json:"from"`
 	To               string    `json:"to"`
+	Timezone         string    `json:"timezone,omitempty"`
 	Resources        []string  `json:"resources"`
 	Interval         string    `json:"interval,omitempty"`
 	Tier             tier.Tier `json:"tier,omitempty"`

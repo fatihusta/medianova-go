@@ -7,6 +7,7 @@ type ErrorLogsStatusCodesRequest struct {
 	OrganizationUUID string    `json:"organization_uuid"`
 	From             string    `json:"from"`
 	To               string    `json:"to"`
+	Timezone         string    `json:"timezone,omitempty"`
 	StatusCodes      []int     `json:"statusCodes"`
 	Resources        []string  `json:"resources,omitempty"`
 	Tier             tier.Tier `json:"tier,omitempty"`
