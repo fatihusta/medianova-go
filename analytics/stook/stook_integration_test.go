@@ -15,31 +15,18 @@ import (
 
 const dateLayout = "2006-01-02 15:04:05"
 
-func newHTTPClient(auth client.Middleware) *client.Client {
+func newHTTPClient(token string) *client.Client {
 	reqConfig := request.NewRequestConfig()
 	reqConfig.RequestTimeout = 30 * time.Second
 
 	middlewares := client.WithMiddlewares(
-		// the stook analytics backend is intermittently slow to resolve
-		// organization buckets (HTTP 500); retry a few times
+		// analytics backends can be slow to resolve organization
+		// buckets; retry a few times on 5xx
 		client.RetryMiddleware(4, 3*time.Second),
-		auth,
+		client.AuthWithOrganizationToken(token),
 	)
 
 	return client.NewClient(reqConfig, middlewares)
-}
-
-// stookAuth prefers the dashboard session token: the stook analytics
-// endpoints currently answer HTTP 500 "Failed to fetch organization buckets"
-// for organization API tokens and HTTP 200 for session JWTs.
-func stookAuth() (client.Middleware, bool) {
-	if session := os.Getenv("MEDIANOVA_SESSION_TOKEN"); session != "" {
-		return client.AuthWithBearer(session), true
-	}
-	if org := os.Getenv("MEDIANOVA_ORG_TOKEN"); org != "" {
-		return client.AuthWithOrganizationToken(org), true
-	}
-	return nil, false
 }
 
 type testEnv struct {
@@ -57,19 +44,18 @@ var (
 )
 
 // newTestEnv resolves the organization and probes once whether the stook
-// analytics routes answer for the configured token. Tests are skipped when
-// the probe keeps failing (organization API tokens currently get HTTP 500
-// "Failed to fetch organization buckets"; dashboard session JWTs work).
+// analytics routes answer for the token; tests are skipped when the probe
+// keeps failing.
 func newTestEnv(t *testing.T) testEnv {
 	t.Helper()
 
-	auth, ok := stookAuth()
-	if !ok {
-		t.Skip("MEDIANOVA_SESSION_TOKEN or MEDIANOVA_ORG_TOKEN is not set, skipping live API test")
+	token := os.Getenv("MEDIANOVA_ORG_TOKEN")
+	if token == "" {
+		t.Skip("MEDIANOVA_ORG_TOKEN is not set, skipping live API test")
 	}
 
 	resolveOnce.Do(func() {
-		mn := newHTTPClient(auth)
+		mn := newHTTPClient(token)
 
 		env := testEnv{}
 		from := time.Now().Add(-26 * time.Hour).Truncate(time.Hour)
@@ -86,14 +72,14 @@ func newTestEnv(t *testing.T) testEnv {
 		}
 
 		env.stook = mn.Analytics.Stook
-		probe := newHTTPClient(auth).Analytics.Stook.GetFilters(context.Background(), env.request())
+		probe := newHTTPClient(token).Analytics.Stook.GetFilters(context.Background(), env.request())
 		env.available = probe.Error == nil && probe.Status == 200
 		env.unavailAt = probe.Status
 		resolvedEnv = env
 	})
 
 	env := resolvedEnv
-	env.stook = newHTTPClient(auth).Analytics.Stook
+	env.stook = newHTTPClient(token).Analytics.Stook
 	if !env.available {
 		t.Skipf("stook analytics is not available for this organization (probe HTTP %d), skipping live API test", env.unavailAt)
 	}
