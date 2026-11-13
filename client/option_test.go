@@ -1,6 +1,8 @@
 package client
 
 import (
+	"context"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -176,5 +178,43 @@ func TestRetryMiddlewareDisabled(t *testing.T) {
 
 	if attempts != 1 {
 		t.Errorf("attempts=%d, want 1 when retries disabled", attempts)
+	}
+}
+
+func TestRetryMiddlewareStopsRetryingOnContextCancel(t *testing.T) {
+	var attempts int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&attempts, 1)
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, srv.URL, nil)
+	if err != nil {
+		t.Fatalf("new request: %v", err)
+	}
+
+	go func() {
+		time.Sleep(100 * time.Millisecond)
+		cancel()
+	}()
+	defer cancel()
+
+	client := &http.Client{Transport: WithMiddlewares(RetryMiddleware(3, 50*time.Millisecond))}
+
+	start := time.Now()
+	_, err = client.Do(req)
+	elapsed := time.Since(start)
+
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("err=%v, want context.Canceled", err)
+	}
+	// backoff sleep is 1s on first attempt; must not wait for it
+	if elapsed > 500*time.Millisecond {
+		t.Errorf("waited %v after cancel, backoff should abort early", elapsed)
+	}
+	if attempts > 2 {
+		t.Errorf("attempts=%d, want retry loop to stop after cancel", attempts)
 	}
 }

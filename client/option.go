@@ -104,8 +104,15 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					resp.Body.Close()
 				}
 
-				// basic backoff
-				time.Sleep(time.Second * time.Duration(attempt))
+				// basic backoff, abortable via parent context
+				backoff := time.NewTimer(time.Second * time.Duration(attempt))
+				select {
+				case <-parentCtx.Done():
+					backoff.Stop()
+					slog.Warn("Parent context canceled or deadline exceeded")
+					return nil, parentCtx.Err()
+				case <-backoff.C:
+				}
 			}
 			return resp, err
 		})
