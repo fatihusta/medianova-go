@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -33,7 +32,7 @@ func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) *common.Re
 		result.Error = err
 		return result
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
@@ -63,7 +62,7 @@ func (s *PurgeService) Status(r PurgeStatusRequest) *common.Result[[]PurgeStatus
 
 	var purgeResponse []PurgeStatusResponseRequests
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
 
 	resp := s.getPurgeStatus(ctx, url)
@@ -77,9 +76,9 @@ func (s *PurgeService) Status(r PurgeStatusRequest) *common.Result[[]PurgeStatus
 	// Auto Pagination
 	if resp.Body.Payload.Total > limit {
 		total := resp.Body.Payload.Total
-		for done := limit; done <= total; done += limit {
+		for done := limit; done < total; done += limit {
 			page += 1
-			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 			q := url.Query()
 			q.Set("page", strconv.Itoa(page))
 			url.RawQuery = q.Encode()

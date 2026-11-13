@@ -37,11 +37,11 @@ func (s *OrganizationService) List() *common.Result[[]OrganizationListData] {
 	if resp.Body.LastPage > 1 {
 		for i := 2; i <= resp.Body.LastPage; i++ {
 			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
-			defer cancel()
 			q := url.Query()
 			q.Set("page", strconv.Itoa(i))
 			url.RawQuery = q.Encode()
 			resp := s.getOrganizations(ctx, url)
+			cancel()
 			if resp.Error != nil {
 				result.Error = resp.Error
 				return result

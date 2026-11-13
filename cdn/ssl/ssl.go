@@ -6,7 +6,6 @@ import (
 	"net/url"
 	"path"
 	"strconv"
-	"time"
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -36,7 +35,7 @@ func (s *SSLService) List(organizationUUID string) *common.Result[[]SSLPayloadRe
 
 	var sslResponse []SSLPayloadResponse
 
-	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
 
 	resp := s.getList(ctx, url)
@@ -50,9 +49,9 @@ func (s *SSLService) List(organizationUUID string) *common.Result[[]SSLPayloadRe
 	// Auto Pagination
 	if resp.Body.Paginate.Total > limit {
 		total := resp.Body.Paginate.Total
-		for done := limit; done <= total; done += limit {
+		for done := limit; done < total; done += limit {
 			page += 1
-			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 			q := url.Query()
 			q.Set("page", strconv.Itoa(page))
 			url.RawQuery = q.Encode()

@@ -36,11 +36,11 @@ func (s *ResourceService) List(organizationUUID string) *common.Result[[]Resourc
 	if resp.Body.Payload.LastPage > 1 {
 		for i := 2; i <= resp.Body.Payload.LastPage; i++ {
 			ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
-			defer cancel()
 			q := url.Query()
 			q.Set("page", strconv.Itoa(i))
 			url.RawQuery = q.Encode()
 			resp := s.getResources(ctx, url)
+			cancel()
 			if resp.Error != nil {
 				result.Error = resp.Error
 				return result
