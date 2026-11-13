@@ -77,7 +77,12 @@ func (s *SSLService) List(organizationUUID string) *common.Result[[]SSLPayloadRe
 
 func (s *SSLService) getList(ctx context.Context, url url.URL) *common.Result[SSLResponse] {
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[SSLResponse]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[SSLResponse](s.request.GetClient(), req)
 }

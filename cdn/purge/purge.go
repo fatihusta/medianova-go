@@ -107,7 +107,12 @@ func (s *PurgeService) Status(r PurgeStatusRequest) *common.Result[[]PurgeStatus
 
 func (s *PurgeService) getPurgeStatus(ctx context.Context, url url.URL) *common.Result[PurgeStatusResponse] {
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[PurgeStatusResponse]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[PurgeStatusResponse](s.request.GetClient(), req)
 }

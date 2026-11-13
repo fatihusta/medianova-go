@@ -21,7 +21,11 @@ func (s *ResourceService) Show(organizationUUID, resourceUUID string) *common.Re
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[ResourceDetailsResponse](s.request.GetClient(), req)
 }

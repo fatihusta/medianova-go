@@ -64,7 +64,12 @@ func (s *StookService) GetBucket(organizationUUID, bucketUUID string) *common.Re
 }
 
 func doGet[T any](ctx context.Context, reqCfg *request.RequestConfig, url url.URL) *common.Result[T] {
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[T]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[T](reqCfg.GetClient(), req)
 }

@@ -61,7 +61,12 @@ func (s *ResourceService) List(organizationUUID string) *common.Result[[]Resourc
 
 func (s *ResourceService) getResources(ctx context.Context, url url.URL) *common.Result[ResourceListResponse] {
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[ResourceListResponse]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[ResourceListResponse](s.request.GetClient(), req)
 }

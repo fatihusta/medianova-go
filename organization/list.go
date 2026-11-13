@@ -60,7 +60,12 @@ func (s *OrganizationService) List() *common.Result[[]OrganizationListData] {
 
 func (s *OrganizationService) getOrganizations(ctx context.Context, url url.URL) *common.Result[OrganizationListResponse] {
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[OrganizationListResponse]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[OrganizationListResponse](s.request.GetClient(), req)
 }

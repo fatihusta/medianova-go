@@ -20,7 +20,11 @@ func (s *OrganizationService) Show(organizationUUID string) *common.Result[Organ
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[OrganizationDetailsResponse](s.request.GetClient(), req)
 }

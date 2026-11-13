@@ -107,7 +107,12 @@ func (s *PrefetchService) Status(r PrefetchStatusRequest) *common.Result[[]Prefe
 
 func (s *PrefetchService) getPrefetchStatus(ctx context.Context, url url.URL) *common.Result[PrefetchStatusResponse] {
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url.String(), nil)
+	if err != nil {
+		result := common.NewResult[PrefetchStatusResponse]()
+		result.Error = err
+		return result
+	}
 
 	return utils.DoHTTPRequest[PrefetchStatusResponse](s.request.GetClient(), req)
 }
