@@ -3,7 +3,6 @@ package overview
 import (
 	"context"
 	"net/http"
-	"path"
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -44,8 +43,11 @@ func (s *ActiveHitTrafficService) Get(ctx context.Context, active_type ActiveTyp
 		return result
 	}
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "overview_report", string(active_type))
+	url, err := utils.JoinPath(s.request.BaseURL, "overview_report", string(active_type))
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {

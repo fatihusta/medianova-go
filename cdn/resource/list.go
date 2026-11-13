@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -15,8 +14,12 @@ func (s *ResourceService) List(organizationUUID string) *common.Result[[]Resourc
 
 	result := common.NewResult[[]Resource]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "cdn", organizationUUID, "resource")
+	url, err := utils.JoinPath(s.request.BaseURL, "cdn", organizationUUID, "resource")
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
 	q := url.Query()
 	q.Set("page", "1")
 	url.RawQuery = q.Encode()

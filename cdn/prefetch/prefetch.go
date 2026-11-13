@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 
 	"github.com/fatihusta/medianova-go/client/request"
@@ -24,8 +23,11 @@ func (s *PrefetchService) Prefetch(organizationUUID string, p PrefetchRequest) *
 
 	result := common.NewResult[PrefetchResponse]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "cdn", organizationUUID, "job", p.ResourceUUID, "prefetch")
+	url, err := utils.JoinPath(s.request.BaseURL, "cdn", organizationUUID, "job", p.ResourceUUID, "prefetch")
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	body, err := utils.ToJSONBodyBuffer(p)
 	if err != nil {
@@ -48,8 +50,12 @@ func (s *PrefetchService) Status(r PrefetchStatusRequest) *common.Result[[]Prefe
 
 	result := common.NewResult[[]PrefetchStatusResponseRequests]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "prefetch")
+	url, err := utils.JoinPath(s.request.BaseURL, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "prefetch")
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
 	page := 1
 	limit := 100
 	q := url.Query()

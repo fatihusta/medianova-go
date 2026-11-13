@@ -3,7 +3,6 @@ package statusreport
 import (
 	"context"
 	"net/http"
-	"path"
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -44,8 +43,11 @@ func (s *StatusReportService) Get(ctx context.Context, status_code StatusCode, r
 		return result
 	}
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "status_report", "graph", string(status_code))
+	url, err := utils.JoinPath(s.request.BaseURL, "status_report", "graph", string(status_code))
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url.String(), body)
 	if err != nil {

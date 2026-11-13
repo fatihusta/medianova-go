@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 
 	"github.com/fatihusta/medianova-go/client/request"
 	"github.com/fatihusta/medianova-go/client/utils"
@@ -15,8 +14,11 @@ import (
 func (s *StookService) ListBuckets(organizationUUID string) *common.Result[[]Bucket] {
 	result := common.NewResult[[]Bucket]()
 
-	url := *s.request.BaseURLV2
-	url.Path = path.Join(url.Path, "stook", organizationUUID, "bucket")
+	url, err := utils.JoinPath(s.request.BaseURLV2, "stook", organizationUUID, "bucket")
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
@@ -39,8 +41,11 @@ func (s *StookService) ListBuckets(organizationUUID string) *common.Result[[]Buc
 func (s *StookService) GetBucket(organizationUUID, bucketUUID string) *common.Result[BucketDetail] {
 	result := common.NewResult[BucketDetail]()
 
-	url := *s.request.BaseURLV2
-	url.Path = path.Join(url.Path, "stook", organizationUUID, "bucket", bucketUUID)
+	url, err := utils.JoinPath(s.request.BaseURLV2, "stook", organizationUUID, "bucket", bucketUUID)
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()

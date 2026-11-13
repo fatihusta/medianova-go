@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 
 	"github.com/fatihusta/medianova-go/client/request"
@@ -24,8 +23,11 @@ func (s *PurgeService) Purge(organizationUUID string, p PurgeRequest) *common.Re
 
 	result := common.NewResult[PurgeResponse]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "cdn", organizationUUID, "job", p.ResourceUUID, "purge")
+	url, err := utils.JoinPath(s.request.BaseURL, "cdn", organizationUUID, "job", p.ResourceUUID, "purge")
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	body, err := utils.ToJSONBodyBuffer(p)
 	if err != nil {
@@ -48,8 +50,12 @@ func (s *PurgeService) Status(r PurgeStatusRequest) *common.Result[[]PurgeStatus
 
 	result := common.NewResult[[]PurgeStatusResponseRequests]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "purge")
+	url, err := utils.JoinPath(s.request.BaseURL, "cdn", r.OrganizationUUID, "job", r.ResourceUUID, "purge")
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
 	page := 1
 	limit := 100
 	q := url.Query()

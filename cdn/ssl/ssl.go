@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"path"
 	"strconv"
 
 	"github.com/fatihusta/medianova-go/client/request"
@@ -24,8 +23,12 @@ func (s *SSLService) List(organizationUUID string) *common.Result[[]SSLPayloadRe
 
 	result := common.NewResult[[]SSLPayloadResponse]()
 
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "ssl", organizationUUID)
+	url, err := utils.JoinPath(s.request.BaseURL, "ssl", organizationUUID)
+	if err != nil {
+		result.Error = err
+		return result
+	}
+
 	page := 1
 	limit := 100
 	q := url.Query()

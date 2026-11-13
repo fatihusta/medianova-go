@@ -3,15 +3,19 @@ package organization
 import (
 	"context"
 	"net/http"
-	"path"
 
 	"github.com/fatihusta/medianova-go/client/utils"
 	"github.com/fatihusta/medianova-go/common"
 )
 
 func (s *OrganizationService) Users(organizationUUID string) *common.Result[OrganizationUsersResponse] {
-	url := *s.request.BaseURL
-	url.Path = path.Join(url.Path, "organizations", organizationUUID, "users")
+	result := common.NewResult[OrganizationUsersResponse]()
+
+	url, err := utils.JoinPath(s.request.BaseURL, "organizations", organizationUUID, "users")
+	if err != nil {
+		result.Error = err
+		return result
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), s.request.RequestTimeout)
 	defer cancel()
