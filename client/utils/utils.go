@@ -36,7 +36,7 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
 			logLevel = slog.LevelDebug
-			attrs = append(attrs, slog.String("body", ReqBodyToString(req)))
+			attrs = append(attrs, slog.String("body", RedactSensitive(ReqBodyToString(req))))
 		}
 
 		slog.LogAttrs(context.Background(), logLevel, "starting request", attrs...)
@@ -94,7 +94,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	err = json.Unmarshal(respBody, &result.Body)
 	if err != nil {
-		result.Error = fmt.Errorf("%s, %s, body:%s", err.Error(), errTempl, respBody)
+		result.Error = fmt.Errorf("%s, %s, body:%s", err.Error(), errTempl, RedactSensitive(string(respBody)))
 		return result
 	}
 
@@ -114,7 +114,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
 			logLevel = slog.LevelDebug
-			attrs = append(attrs, slog.String("body", string(respBody)))
+			attrs = append(attrs, slog.String("body", RedactSensitive(string(respBody))))
 		}
 
 		slog.LogAttrs(context.Background(), logLevel, "complated request", attrs...)
