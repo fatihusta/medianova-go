@@ -131,6 +131,7 @@ func TestRetryMiddlewareExhaustedReturnsLastResponse(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddInt32(&attempts, 1)
 		w.WriteHeader(http.StatusBadGateway)
+		w.Write([]byte(`{"error":"upstream busy"}`))
 	}))
 	defer srv.Close()
 
@@ -139,11 +140,22 @@ func TestRetryMiddlewareExhaustedReturnsLastResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get: %v", err)
 	}
-	resp.Body.Close()
+	defer resp.Body.Close()
 
-	// last 5xx response is consumed by the middleware; request ends with error status
 	if attempts != 2 {
 		t.Errorf("attempts=%d, want 2", attempts)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read last response body: %v", err)
+	}
+
+	if resp.StatusCode != http.StatusBadGateway {
+		t.Errorf("status=%d, want %d", resp.StatusCode, http.StatusBadGateway)
+	}
+	if !strings.Contains(string(body), "upstream busy") {
+		t.Errorf("last attempt body=%q, want server error payload readable", string(body))
 	}
 }
 

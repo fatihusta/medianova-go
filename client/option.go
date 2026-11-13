@@ -73,8 +73,6 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					return resp, nil
 				}
 
-				cancel()
-
 				statusCode := 0
 				if resp != nil {
 					statusCode = resp.StatusCode
@@ -89,6 +87,19 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 					slog.String("Retrying", fmt.Sprintf("%d/%d", attempt, retries)),
 				)
 
+				if attempt == retries {
+					// return the last failed attempt with a readable body so the
+					// caller can surface the server error payload
+					if err == nil && resp.Body != nil {
+						resp.Body = &contextCancelingReadCloser{ReadCloser: resp.Body, cancel: cancel}
+					} else {
+						cancel()
+					}
+					return resp, err
+				}
+
+				cancel()
+
 				if resp != nil && resp.Body != nil {
 					resp.Body.Close()
 				}
@@ -101,6 +112,8 @@ func RetryMiddleware(retries int, delay time.Duration) Middleware {
 	}
 }
 
+// contextCancelingReadCloser keeps the attempt context alive until the body
+// is fully read and closed by the caller.
 type contextCancelingReadCloser struct {
 	io.ReadCloser
 	once   sync.Once
