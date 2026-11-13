@@ -2,7 +2,6 @@ package client
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/fatihusta/medianova-go/analytics"
 	"github.com/fatihusta/medianova-go/cdn"
@@ -23,11 +22,11 @@ func NewClient(cfg *request.RequestConfig, middleware http.RoundTripper) *Client
 	client := cfg.GetClient()
 	if client == nil {
 		cfg.SetClient(&http.Client{
-			Timeout:   cfg.RequestTimeout * time.Second,
+			Timeout:   cfg.RequestTimeout,
 			Transport: middleware,
 		})
 	} else {
-		client.Timeout = cfg.RequestTimeout * time.Second
+		client.Timeout = cfg.RequestTimeout
 		client.Transport = middleware
 	}
 
