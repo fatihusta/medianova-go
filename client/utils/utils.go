@@ -22,9 +22,10 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 	reqID := uuid.New().String()
 	req = req.WithContext(context.WithValue(req.Context(), requestIDKey, reqID))
+	ctx := req.Context()
 
-	if slog.Default().Enabled(context.Background(), slog.LevelDebug) ||
-		slog.Default().Enabled(context.Background(), slog.LevelInfo) {
+	if slog.Default().Enabled(ctx, slog.LevelDebug) ||
+		slog.Default().Enabled(ctx, slog.LevelInfo) {
 
 		attrs := []slog.Attr{
 			slog.String("request_id", reqID),
@@ -34,12 +35,12 @@ func DoHTTPRequest[T any](c *http.Client, req *http.Request) *common.Result[T] {
 
 		logLevel := slog.LevelInfo
 
-		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
+		if slog.Default().Enabled(ctx, slog.LevelDebug) {
 			logLevel = slog.LevelDebug
 			attrs = append(attrs, slog.String("body", RedactSensitive(ReqBodyToString(req))))
 		}
 
-		slog.LogAttrs(context.Background(), logLevel, "starting request", attrs...)
+		slog.LogAttrs(ctx, logLevel, "starting request", attrs...)
 	}
 
 	resp, err := c.Do(req)
@@ -64,6 +65,7 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 	result.Status = resp.StatusCode
 
 	reqID := GetRequestID(resp.Request.Context())
+	ctx := resp.Request.Context()
 	errTempl := fmt.Sprintf("%s: %s, method: %s, url: %s",
 		requestIDKey,
 		reqID,
@@ -100,8 +102,8 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 	result.Headers = resp.Header
 
-	if slog.Default().Enabled(context.Background(), slog.LevelDebug) ||
-		slog.Default().Enabled(context.Background(), slog.LevelInfo) {
+	if slog.Default().Enabled(ctx, slog.LevelDebug) ||
+		slog.Default().Enabled(ctx, slog.LevelInfo) {
 
 		attrs := []slog.Attr{
 			slog.String(requestIDKey.String(), reqID),
@@ -112,12 +114,12 @@ func Result[T any](resp *http.Response) *common.Result[T] {
 
 		logLevel := slog.LevelInfo
 
-		if slog.Default().Enabled(context.Background(), slog.LevelDebug) {
+		if slog.Default().Enabled(ctx, slog.LevelDebug) {
 			logLevel = slog.LevelDebug
 			attrs = append(attrs, slog.String("body", RedactSensitive(string(respBody))))
 		}
 
-		slog.LogAttrs(context.Background(), logLevel, "complated request", attrs...)
+		slog.LogAttrs(ctx, logLevel, "complated request", attrs...)
 	}
 
 	return result
